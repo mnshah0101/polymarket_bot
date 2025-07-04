@@ -28,7 +28,7 @@ a c++ bot that automatically spots and takes advantage of price differences betw
    mkdir build && cd build
    cmake ..
    make
-````
+```
 
 2. set your keys:
 
