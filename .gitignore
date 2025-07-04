@@ -1,0 +1,94 @@
+# Build artifacts
+build/
+bin/
+lib/
+*.o
+*.a
+*.so
+*.dylib
+*.exe
+*.dll
+*.obj
+*.pdb
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.cmake
+!CMakeLists.txt
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-*
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Environment variables and secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.development
+.env.test
+.env.production
+*.key
+*.pem
+*.p12
+*.pfx
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Coverage reports
+*.gcov
+*.gcda
+*.gcno
+coverage/
+
+# Profiling
+*.prof
+*.gprof
+
+# Core dumps
+core
+core.*
+
+# Package files
+*.tar.gz
+*.zip
+*.rar
+
+# Backup files
+*~
+*.orig
+*.rej
+
+# Test artifacts
+test_results/
+*.test

@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  polymarket-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    container_name: polymarket-bot
+    restart: unless-stopped
+    environment:
+      - CONFIG_PATH=/app/config
+      - DATA_PATH=/app/data
+      # Add your environment variables here
+      # - ODDS_API_KEY=${ODDS_API_KEY}
+      # - POLYMARKET_PRIVATE_KEY=${POLYMARKET_PRIVATE_KEY}
+    volumes:
+      - ./config:/app/config:ro
+      - polymarket_data:/app/data
+      - ./logs:/app/logs
+    networks:
+      - polymarket-network
+    healthcheck:
+      test: ["CMD", "polymarket_bot", "--health-check"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: Add a database service if needed
+  # sqlite-db:
+  #   image: alpine:latest
+  #   container_name: sqlite-db
+  #   volumes:
+  #     - polymarket_data:/data
+  #   command: ["sh", "-c", "tail -f /dev/null"]
+  #   networks:
+  #     - polymarket-network
+
+volumes:
+  polymarket_data:
+    driver: local
+
+networks:
+  polymarket-network:
+    driver: bridge 

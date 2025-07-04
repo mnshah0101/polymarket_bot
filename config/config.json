@@ -1,0 +1,47 @@
+{
+  "apis": {
+    "oddsApi": {
+      "baseUrl": "https://api.the-odds-api.com/v4",
+      "apiKey": "${ODDS_API_KEY}",
+      "rateLimitPerMinute": 500
+    },
+    "polymarket": {
+      "baseUrl": "https://clob.polymarket.com",
+      "privateKey": "${POLYMARKET_PRIVATE_KEY}",
+      "chainId": 137
+    }
+  },
+  "database": {
+    "path": "./data/trading.db",
+    "backupEnabled": true,
+    "backupInterval": 3600
+  },
+  "sharpBooks": [
+    "pinnacle"
+  ],
+  "sports": [
+    "americanFootballNFL",
+    "basketballNBA",
+    "baseballMLB"
+  ],
+  "kelly": {
+    "fractionOfKelly": 0.25,
+    "minEdge": 0.02,
+    "maxPositionSize": 0.05
+  },
+  "risk": {
+    "maxDrawdown": 0.20,
+    "maxDailyTrades": 50,
+    "maxDailyVolume": 1000.0,
+    "circuitBreakerEnabled": true
+  },
+  "matching": {
+    "minConfidenceScore": 0.8,
+    "maxTimeDifference": 3600
+  },
+  "sync": {
+    "positionSyncInterval": 300,
+    "accountSyncInterval": 60,
+    "priceUpdateInterval": 30
+  }
+}

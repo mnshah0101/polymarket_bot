@@ -1,0 +1,49 @@
+{
+  "apis": {
+    "oddsApi": {
+      "baseUrl": "https://api.the-odds-api.com/v4",
+      "apiKey": "26d55db7b7cedd66c74a69b16efa7422",
+      "rateLimitPerMinute": 10
+    },
+    "polymarket": {
+      "baseUrl": "https://clob.polymarket.com",
+      "privateKey": "test_private_key_for_development",
+      "chainId": 137
+    }
+  },
+  "database": {
+    "path": "./data/trading.db",
+    "backupEnabled": true,
+    "backupInterval": 3600
+  },
+  "sharpBooks": [
+    "pinnacle"
+  ],
+  "sports": [
+    "americanfootball_nfl",
+    "basketball_nba",
+    "baseball_mlb",
+    "soccer_epl",
+    "soccer_fifa_club_world_cup"
+  ],
+  "kelly": {
+    "fractionOfKelly": 0.25,
+    "minEdge": 0.02,
+    "maxPositionSize": 0.05
+  },
+  "risk": {
+    "maxDrawdown": 0.20,
+    "maxDailyTrades": 50,
+    "maxDailyVolume": 1000.0,
+    "circuitBreakerEnabled": true
+  },
+  "matching": {
+    "minConfidenceScore": 0.8,
+    "maxTimeDifference": 3600
+  },
+  "sync": {
+    "positionSyncInterval": 300,
+    "accountSyncInterval": 60,
+    "priceUpdateInterval": 30
+  }
+} 
