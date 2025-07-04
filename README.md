@@ -15,7 +15,7 @@ a c++ bot that automatically spots and takes advantage of price differences betw
 
 - **c++17** – fast and efficient  
 - **libcurl** – for talking to web apis  
-- **nlohmann/json** – because json is life  
+- **nlohmann/json** – structs suck
 - **sqlite** – tiny database to keep your history  
 - **cmake** – makes building painless
 
