@@ -2,7 +2,7 @@
   "apis": {
     "oddsApi": {
       "baseUrl": "https://api.the-odds-api.com/v4",
-      "apiKey": "26d55db7b7cedd66c74a69b16efa7422",
+      "apiKey": "${ODDS_API_KEY}",
       "rateLimitPerMinute": 10
     },
     "polymarket": {
