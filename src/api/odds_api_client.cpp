@@ -68,7 +68,6 @@ std::string OddsApiClient::makeApiRequest(const std::string& sport, const std::s
 
 std::vector<polymarket_bot::common::RawOddsGame> OddsApiClient::parseResponse(const std::string& jsonResponse) {
     try {
-        std::cout << "Parsing response: " << jsonResponse << std::endl;
         json j = json::parse(jsonResponse);
 
         std::vector<polymarket_bot::common::RawOddsGame> games;

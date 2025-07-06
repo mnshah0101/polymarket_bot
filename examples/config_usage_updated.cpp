@@ -30,7 +30,11 @@ int main() {
     
     // API credentials (substituted from environment variables)
     std::cout << "Odds API Key: " << (configManager.getOddsApiKey().empty() ? "Not set" : "Set") << "\n";
-    std::cout << "Polymarket Private Key: " << (configManager.getPolymarketPrivateKey().empty() ? "Not set" : "Set") << "\n";
+    std::cout << "Polymarket Address: " << (configManager.getPolymarketAddress().empty() ? "Not set" : "Set") << "\n";
+    std::cout << "Polymarket Signature: " << (configManager.getPolymarketSignature().empty() ? "Not set" : "Set") << "\n";
+    std::cout << "Polymarket Timestamp: " << (configManager.getPolymarketTimestamp().empty() ? "Not set" : "Set") << "\n";
+    std::cout << "Polymarket API Key: " << (configManager.getPolymarketApiKey().empty() ? "Not set" : "Set") << "\n";
+    std::cout << "Polymarket Passphrase: " << (configManager.getPolymarketPassphrase().empty() ? "Not set" : "Set") << "\n";
     std::cout << "Valid API Credentials: " << (configManager.hasValidApiCredentials() ? "Yes" : "No") << "\n";
     
     // Trading parameters

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstdlib>
 #include "api/odds_api_client.h"
+#include "api/polymarket_api_client.h"
 #include "config/config_manager.h"
 
 int main(int argc, char* argv[]) {
@@ -13,8 +14,20 @@ int main(int argc, char* argv[]) {
             std::cout << "Warning: ODDS_API_KEY not set. Using test configuration." << std::endl;
         }
         
-        if (!std::getenv("POLYMARKET_PRIVATE_KEY")) {
-            std::cout << "Warning: POLYMARKET_PRIVATE_KEY not set. Using test configuration." << std::endl;
+        if (!std::getenv("POLY_ADDRESS")) {
+            std::cout << "Warning: POLY_ADDRESS not set. Using test configuration." << std::endl;
+        }
+        if (!std::getenv("POLY_SIGNATURE")) {
+            std::cout << "Warning: POLY_SIGNATURE not set. Using test configuration." << std::endl;
+        }
+        if (!std::getenv("POLY_TIMESTAMP")) {
+            std::cout << "Warning: POLY_TIMESTAMP not set. Using test configuration." << std::endl;
+        }
+        if (!std::getenv("POLY_API_KEY")) {
+            std::cout << "Warning: POLY_API_KEY not set. Using test configuration." << std::endl;
+        }
+        if (!std::getenv("POLY_PASSPHRASE")) {
+            std::cout << "Warning: POLY_PASSPHRASE not set. Using test configuration." << std::endl;
         }
         
         // Initialize the config manager
@@ -79,6 +92,33 @@ int main(int argc, char* argv[]) {
         
         std::cout << "Bot is ready to fetch odds data" << std::endl;
 
+        // Create the Polymarket API client
+        polymarket_bot::api::PolymarketApiClient polyClient(
+            configManager.getPolymarketBaseUrl(),
+            configManager.getPolymarketGammaBaseUrl(),
+            configManager.getPolymarketAddress(),
+            configManager.getPolymarketSignature(),
+            configManager.getPolymarketTimestamp(),
+            configManager.getPolymarketApiKey(),
+            configManager.getPolymarketPassphrase(),
+            configManager.getPolymarketChainId()
+        );
+
+        std::cout << "Polymarket API client initialized successfully" << std::endl;
+
+        // Test Gamma Markets API
+        std::cout << "Testing Gamma Markets API..." << std::endl;
+        auto gammaMarkets = polyClient.getGammaMarkets(1, 5);
+        std::cout << "Found " << gammaMarkets.markets.size() << " Gamma markets" << std::endl;
+        
+        for (const auto& market : gammaMarkets.markets) {
+            std::cout << "Gamma Market ID: " << market.id << ", Slug: " << market.slug << std::endl;
+        }
+
+        // Test Polymarket CLOB API
+        std::cout << "Testing Polymarket CLOB API..." << std::endl;
+        auto polyMarkets = polyClient.getCurrentMarkets();
+        std::cout << "Found " << polyMarkets.size() << " Polymarket markets" << std::endl;
 
         auto odds = client.fetchOdds(sports);
 

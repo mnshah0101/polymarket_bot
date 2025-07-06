@@ -2,13 +2,12 @@
   "apis": {
     "oddsApi": {
       "baseUrl": "https://api.the-odds-api.com/v4",
-      "apiKey": "${ODDS_API_KEY}",
       "rateLimitPerMinute": 10
     },
-    "polymarket": {
-      "baseUrl": "https://clob.polymarket.com",
-      "privateKey": "test_private_key_for_development",
-      "chainId": 137
+        "polymarket": {
+        "baseUrl": "https://clob.polymarket.com",
+        "gammaBaseUrl": "https://gamma-api.polymarket.com",
+        "chainId": 137
     }
   },
   "database": {

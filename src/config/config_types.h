@@ -17,7 +17,12 @@ struct OddsApiConfig {
 
 struct PolymarketConfig {
     std::string baseUrl;
-    std::string privateKey;
+    std::string gammaBaseUrl;  // Gamma Markets API base URL
+    std::string address;
+    std::string signature;
+    std::string timestamp;
+    std::string apiKey;
+    std::string passphrase;
     int chainId;
 };
 

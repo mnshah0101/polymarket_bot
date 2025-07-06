@@ -34,7 +34,11 @@ a c++ bot that automatically spots and takes advantage of price differences betw
 
    ```bash
    export ODDS_API_KEY="your_odds_api_key"
-   export POLYMARKET_PRIVATE_KEY="your_polymarket_key"
+   export POLY_ADDRESS="your_polygon_address"
+   export POLY_SIGNATURE="your_hmac_signature"
+   export POLY_TIMESTAMP="your_unix_timestamp"
+   export POLY_API_KEY="your_polymarket_api_key"
+   export POLY_PASSPHRASE="your_polymarket_passphrase"
    ```
 3. fire it up:
 
@@ -44,18 +48,17 @@ a c++ bot that automatically spots and takes advantage of price differences betw
 
 ## configuration
 
-edit `config/config.json` to tweak what you monitor and how you size bets:
+edit `config/config.json` to tweak what you monitor and how you size bets. API keys are read from environment variables and should not be stored in the config file:
 
 ```json
 {
   "apis": {
     "oddsApi": {
       "baseUrl": "https://api.the-odds-api.com/v4",
-      "apiKey": "${ODDS_API_KEY}"
+      "rateLimitPerMinute": 60
     },
     "polymarket": {
       "baseUrl": "https://clob.polymarket.com",
-      "privateKey": "${POLYMARKET_PRIVATE_KEY}",
       "chainId": 137
     }
   },

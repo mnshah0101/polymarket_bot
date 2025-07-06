@@ -26,7 +26,16 @@ public:
     
     // API credentials management
     std::string getOddsApiKey() const;
-    std::string getPolymarketPrivateKey() const;
+    
+    // Polymarket credentials management
+    std::string getPolymarketBaseUrl() const;
+    std::string getPolymarketGammaBaseUrl() const;
+    std::string getPolymarketAddress() const;
+    std::string getPolymarketSignature() const;
+    std::string getPolymarketTimestamp() const;
+    std::string getPolymarketApiKey() const;
+    std::string getPolymarketPassphrase() const;
+    int getPolymarketChainId() const;
     bool hasValidApiCredentials() const;
     
     // Sharp sportsbook preferences

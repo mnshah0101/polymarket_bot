@@ -11,9 +11,13 @@ services:
     environment:
       - CONFIG_PATH=/app/config
       - DATA_PATH=/app/data
-      # Add your environment variables here
+      # Required: Set your API keys as environment variables
       # - ODDS_API_KEY=${ODDS_API_KEY}
-      # - POLYMARKET_PRIVATE_KEY=${POLYMARKET_PRIVATE_KEY}
+      # - POLY_ADDRESS=${POLY_ADDRESS}
+      # - POLY_SIGNATURE=${POLY_SIGNATURE}
+      # - POLY_TIMESTAMP=${POLY_TIMESTAMP}
+      # - POLY_API_KEY=${POLY_API_KEY}
+      # - POLY_PASSPHRASE=${POLY_PASSPHRASE}
     volumes:
       - ./config:/app/config:ro
       - polymarket_data:/app/data

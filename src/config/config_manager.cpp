@@ -56,14 +56,32 @@ public:
                 if (apis.contains("oddsApi")) {
                     auto& oddsApi = apis["oddsApi"];
                     config.apis.oddsApi.baseUrl = oddsApi["baseUrl"];
-                    config.apis.oddsApi.apiKey = std::getenv("ODDS_API_KEY");
+                    const char* oddsApiKey = std::getenv("ODDS_API_KEY");
+                    config.apis.oddsApi.apiKey = oddsApiKey ? oddsApiKey : "";
                     config.apis.oddsApi.rateLimitPerMinute = oddsApi["rateLimitPerMinute"];
                 }
                 
                 if (apis.contains("polymarket")) {
                     auto& polymarket = apis["polymarket"];
                     config.apis.polymarket.baseUrl = polymarket["baseUrl"];
-                    config.apis.polymarket.privateKey = std::getenv("POLYMARKET_PRIVATE_KEY");
+                    config.apis.polymarket.gammaBaseUrl = polymarket["gammaBaseUrl"];
+                    
+                    // Read Polymarket headers from environment variables
+                    const char* polyAddress = std::getenv("POLY_ADDRESS");
+                    config.apis.polymarket.address = polyAddress ? polyAddress : "";
+                    
+                    const char* polySignature = std::getenv("POLY_SIGNATURE");
+                    config.apis.polymarket.signature = polySignature ? polySignature : "";
+                    
+                    const char* polyTimestamp = std::getenv("POLY_TIMESTAMP");
+                    config.apis.polymarket.timestamp = polyTimestamp ? polyTimestamp : "";
+                    
+                    const char* polyApiKey = std::getenv("POLY_API_KEY");
+                    config.apis.polymarket.apiKey = polyApiKey ? polyApiKey : "";
+                    
+                    const char* polyPassphrase = std::getenv("POLY_PASSPHRASE");
+                    config.apis.polymarket.passphrase = polyPassphrase ? polyPassphrase : "";
+                    
                     config.apis.polymarket.chainId = polymarket["chainId"];
                 }
             }
@@ -153,8 +171,28 @@ public:
             return false;
         }
         
-        if (config.apis.polymarket.privateKey.empty()) {
-            lastError = "Polymarket private key is required";
+        if (config.apis.polymarket.address.empty()) {
+            lastError = "Polymarket address (POLY_ADDRESS) is required";
+            return false;
+        }
+        
+        if (config.apis.polymarket.signature.empty()) {
+            lastError = "Polymarket signature (POLY_SIGNATURE) is required";
+            return false;
+        }
+        
+        if (config.apis.polymarket.timestamp.empty()) {
+            lastError = "Polymarket timestamp (POLY_TIMESTAMP) is required";
+            return false;
+        }
+        
+        if (config.apis.polymarket.apiKey.empty()) {
+            lastError = "Polymarket API key (POLY_API_KEY) is required";
+            return false;
+        }
+        
+        if (config.apis.polymarket.passphrase.empty()) {
+            lastError = "Polymarket passphrase (POLY_PASSPHRASE) is required";
             return false;
         }
         
@@ -296,8 +334,37 @@ std::string ConfigManager::getOddsApiKey() const {
     return pImpl->config.apis.oddsApi.apiKey;
 }
 
-std::string ConfigManager::getPolymarketPrivateKey() const {
-    return pImpl->config.apis.polymarket.privateKey;
+// Polymarket credentials getters
+std::string ConfigManager::getPolymarketAddress() const {
+    return pImpl->config.apis.polymarket.address;
+}
+
+std::string ConfigManager::getPolymarketSignature() const {
+    return pImpl->config.apis.polymarket.signature;
+}
+
+std::string ConfigManager::getPolymarketTimestamp() const {
+    return pImpl->config.apis.polymarket.timestamp;
+}
+
+std::string ConfigManager::getPolymarketApiKey() const {
+    return pImpl->config.apis.polymarket.apiKey;
+}
+
+std::string ConfigManager::getPolymarketPassphrase() const {
+    return pImpl->config.apis.polymarket.passphrase;
+}
+
+std::string ConfigManager::getPolymarketBaseUrl() const {
+    return pImpl->config.apis.polymarket.baseUrl;
+}
+
+std::string ConfigManager::getPolymarketGammaBaseUrl() const {
+    return pImpl->config.apis.polymarket.gammaBaseUrl;
+}
+
+int ConfigManager::getPolymarketChainId() const {
+    return pImpl->config.apis.polymarket.chainId;
 }
 
 const std::vector<std::string>& ConfigManager::getSports() const {
@@ -306,7 +373,11 @@ const std::vector<std::string>& ConfigManager::getSports() const {
 
 bool ConfigManager::hasValidApiCredentials() const {
     return !pImpl->config.apis.oddsApi.apiKey.empty() && 
-           !pImpl->config.apis.polymarket.privateKey.empty();
+           !pImpl->config.apis.polymarket.address.empty() &&
+           !pImpl->config.apis.polymarket.signature.empty() &&
+           !pImpl->config.apis.polymarket.timestamp.empty() &&
+           !pImpl->config.apis.polymarket.apiKey.empty() &&
+           !pImpl->config.apis.polymarket.passphrase.empty();
 }
 
 const std::vector<std::string>& ConfigManager::getSharpBooks() const {

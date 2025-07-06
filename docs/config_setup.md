@@ -13,12 +13,10 @@ The main configuration file is located at `config/config.json` and contains the 
   "apis": {
     "oddsApi": {
       "baseUrl": "https://api.the-odds-api.com/v4",
-      "apiKey": "${ODDS_API_KEY}",
       "rateLimitPerMinute": 60
     },
     "polymarket": {
       "baseUrl": "https://clob.polymarket.com",
-      "privateKey": "${POLYMARKET_PRIVATE_KEY}",
       "chainId": 137
     }
   },
@@ -61,16 +59,22 @@ The main configuration file is located at `config/config.json` and contains the 
 }
 ```
 
-## Environment Variable Substitution
+## Environment Variables
 
-The configuration system supports environment variable substitution using the `${VARIABLE_NAME}` syntax. These variables should be set in the Docker container environment.
+API keys and private keys are read directly from environment variables and should not be stored in the configuration file. This ensures sensitive credentials are not committed to version control.
 
 ### Required Environment Variables
 
 ```bash
 # API Keys
 ODDS_API_KEY=your_odds_api_key_here
-POLYMARKET_PRIVATE_KEY=your_polymarket_private_key_here
+
+# Polymarket Headers
+POLY_ADDRESS=your_polygon_address_here
+POLY_SIGNATURE=your_hmac_signature_here
+POLY_TIMESTAMP=your_unix_timestamp_here
+POLY_API_KEY=your_polymarket_api_key_here
+POLY_PASSPHRASE=your_polymarket_passphrase_here
 
 # Optional: Override default values
 DATABASE_PATH=/custom/path/to/database.db
@@ -83,16 +87,19 @@ When running the bot in Docker, set environment variables using the `-e` flag or
 
 ```bash
 # Using command line
-docker run -e ODDS_API_KEY=your_key -e POLYMARKET_PRIVATE_KEY=your_key polymarket_bot
+docker run -e ODDS_API_KEY=your_key -e POLY_ADDRESS=your_address -e POLY_SIGNATURE=your_signature -e POLY_TIMESTAMP=your_timestamp -e POLY_API_KEY=your_api_key -e POLY_PASSPHRASE=your_passphrase polymarket_bot
 
 # Using environment file
 docker run --env-file .env.docker polymarket_bot
-```
 
 Example `.env.docker` file:
 ```env
 ODDS_API_KEY=your_odds_api_key_here
-POLYMARKET_PRIVATE_KEY=your_polymarket_private_key_here
+POLY_ADDRESS=your_polygon_address_here
+POLY_SIGNATURE=your_hmac_signature_here
+POLY_TIMESTAMP=your_unix_timestamp_here
+POLY_API_KEY=your_polymarket_api_key_here
+POLY_PASSPHRASE=your_polymarket_passphrase_here
 DATABASE_PATH=/data/polymarket_bot.db
 LOG_LEVEL=INFO
 ```
@@ -102,13 +109,18 @@ LOG_LEVEL=INFO
 ### APIs
 - **oddsApi**: Configuration for the odds API service
   - `baseUrl`: API base URL
-  - `apiKey`: API key (from environment variable)
   - `rateLimitPerMinute`: Rate limiting configuration
+  - API key is read from `ODDS_API_KEY` environment variable
 
 - **polymarket**: Configuration for Polymarket integration
   - `baseUrl`: Polymarket API base URL
-  - `privateKey`: Private key for authentication (from environment variable)
   - `chainId`: Blockchain network ID
+  - Headers are read from environment variables:
+    - `POLY_ADDRESS`: Polygon address
+    - `POLY_SIGNATURE`: HMAC signature for request
+    - `POLY_TIMESTAMP`: Current UNIX timestamp
+    - `POLY_API_KEY`: Polymarket API key
+    - `POLY_PASSPHRASE`: Polymarket API key passphrase
 
 ### Database
 - `path`: Database file path

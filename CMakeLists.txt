@@ -115,10 +115,14 @@ set_target_properties(polymarket_bot PROPERTIES
 file(COPY ${CMAKE_SOURCE_DIR}/config DESTINATION ${CMAKE_BINARY_DIR}/bin)
 file(COPY ${CMAKE_SOURCE_DIR}/config DESTINATION ${CMAKE_BINARY_DIR})
 
-# Set environment variables for testing
-if(USE_TEST_API_KEYS)
-    message(STATUS "Using test API keys: ODDS_API_KEY=${ODDS_API_KEY}")
-endif()
+# Environment Variables
+# The application expects these environment variables to be set in the system:
+# - ODDS_API_KEY: Your odds API key
+# - POLY_ADDRESS: Your Polygon address
+# - POLY_SIGNATURE: Your HMAC signature
+# - POLY_TIMESTAMP: Current UNIX timestamp
+# - POLY_API_KEY: Your Polymarket API key
+# - POLY_PASSPHRASE: Your Polymarket passphrase
 
 # Install rules
 install(TARGETS polymarket_bot
@@ -156,9 +160,6 @@ if(EXISTS "${CMAKE_SOURCE_DIR}/tests/test_odds_api_client.cpp")
         gmock_main
     )
     add_test(NAME GoogleTests COMMAND polymarket_bot_gtest)
-    set_tests_properties(GoogleTests PROPERTIES
-        ENVIRONMENT "ODDS_API_KEY=${ODDS_API_KEY};POLYMARKET_PRIVATE_KEY=${POLYMARKET_PRIVATE_KEY}"
-    )
 endif()
 
 # Simple test executable
@@ -172,9 +173,6 @@ if(EXISTS "${CMAKE_SOURCE_DIR}/tests/test_odds_api_client_simple.cpp")
         Threads::Threads
     )
     add_test(NAME SimpleTests COMMAND polymarket_bot_simple_tests)
-    set_tests_properties(SimpleTests PROPERTIES
-        ENVIRONMENT "ODDS_API_KEY=${ODDS_API_KEY};POLYMARKET_PRIVATE_KEY=${POLYMARKET_PRIVATE_KEY}"
-    )
 endif()
 
 # Print configuration summary
