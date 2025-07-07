@@ -153,67 +153,67 @@ struct PolymarketUserActivity {
 
 // Gamma Markets API Response Structures
 struct GammaMarket {
-    std::string id;                    // The unique identifier of the market
-    std::string question;              // The market question
-    std::string conditionId;           // The condition ID
-    std::string slug;                  // The slug of the market
-    std::string resolutionSource;      // Resolution source
-    std::string endDate;               // The end date of the market
-    std::string liquidity;             // The liquidity of the market
-    std::string startDate;             // The start date of the market
-    std::string image;                 // The market image URL
-    std::string icon;                  // The market icon URL
-    std::string description;           // The market description
-    std::string outcomes;              // The market outcomes (JSON string)
-    std::string outcomePrices;         // The outcome prices (JSON string)
-    std::string volume;                // The trading volume
-    bool active;                       // Whether the market is active
-    bool closed;                       // Whether the market is closed
-    std::string marketMakerAddress;    // The market maker address
-    std::string createdAt;             // Creation timestamp
-    std::string updatedAt;             // Last update timestamp
-    bool new_market;                   // Whether this is a new market
-    bool featured;                     // Whether the market is featured
-    std::string submitted_by;          // Who submitted the market
-    bool archived;                     // Whether the market is archived
-    std::string resolvedBy;            // Who resolved the market
-    bool restricted;                   // Whether the market is restricted
-    std::string groupItemTitle;        // Group item title
-    std::string groupItemThreshold;    // Group item threshold
-    std::string questionID;            // Question ID
-    bool enableOrderBook;              // Whether order book is enabled
-    double orderPriceMinTickSize;      // Minimum tick size for orders
-    double orderMinSize;               // Minimum order size
-    double volumeNum;                  // Volume as number
-    double liquidityNum;               // Liquidity as number
-    std::string endDateIso;            // End date in ISO format
-    std::string startDateIso;          // Start date in ISO format
-    bool hasReviewedDates;             // Whether dates have been reviewed
-    double volume24hr;                 // 24-hour volume
-    double volume1wk;                  // 1-week volume
-    double volume1mo;                  // 1-month volume
-    double volume1yr;                  // 1-year volume
-    std::string clobTokenIds;          // CLOB token IDs (JSON string)
-    std::string umaBond;               // UMA bond
-    std::string umaReward;             // UMA reward
-    double volume24hrClob;             // 24-hour CLOB volume
-    double volume1wkClob;              // 1-week CLOB volume
-    double volume1moClob;              // 1-month CLOB volume
-    double volume1yrClob;              // 1-year CLOB volume
-    double volumeClob;                 // Total CLOB volume
-    double liquidityClob;              // CLOB liquidity
-    bool acceptingOrders;              // Whether accepting orders
-    bool negRisk;                      // Negative risk
-    bool ready;                        // Whether market is ready
-    bool funded;                       // Whether market is funded
-    std::string acceptingOrdersTimestamp; // When orders started being accepted
-    bool cyom;                         // Create your own market
-    double competitive;                // Competitive status
-    bool pagerDutyNotificationEnabled; // PagerDuty notifications enabled
-    bool approved;                     // Whether market is approved
-    double rewardsMinSize;             // Minimum reward size
-    double rewardsMaxSpread;           // Maximum reward spread
-    double spread;                     // Market spread
+    std::optional<std::string> id;                    // The unique identifier of the market
+    std::optional<std::string> question;              // The market question
+    std::optional<std::string> conditionId;           // The condition ID
+    std::optional<std::string> slug;                  // The slug of the market
+    std::optional<std::string> resolutionSource;      // Resolution source
+    std::optional<std::string> endDate;               // The end date of the market
+    std::optional<std::string> liquidity;             // The liquidity of the market
+    std::optional<std::string> startDate;             // The start date of the market
+    std::optional<std::string> image;                 // The market image URL
+    std::optional<std::string> icon;                  // The market icon URL
+    std::optional<std::string> description;           // The market description
+    std::optional<std::string> outcomes;              // The market outcomes (JSON string)
+    std::optional<std::string> outcomePrices;         // The outcome prices (JSON string)
+    std::optional<std::string> volume;                // The trading volume
+    std::optional<bool> active;                       // Whether the market is active
+    std::optional<bool> closed;                       // Whether the market is closed
+    std::optional<std::string> marketMakerAddress;    // The market maker address
+    std::optional<std::string> createdAt;             // Creation timestamp
+    std::optional<std::string> updatedAt;             // Last update timestamp
+    std::optional<bool> new_market;                   // Whether this is a new market
+    std::optional<bool> featured;                     // Whether the market is featured
+    std::optional<std::string> submitted_by;          // Who submitted the market
+    std::optional<bool> archived;                     // Whether the market is archived
+    std::optional<std::string> resolvedBy;            // Who resolved the market
+    std::optional<bool> restricted;                   // Whether the market is restricted
+    std::optional<std::string> groupItemTitle;        // Group item title
+    std::optional<std::string> groupItemThreshold;    // Group item threshold
+    std::optional<std::string> questionID;            // Question ID
+    std::optional<bool> enableOrderBook;              // Whether order book is enabled
+    std::optional<double> orderPriceMinTickSize;      // Minimum tick size for orders
+    std::optional<double> orderMinSize;               // Minimum order size
+    std::optional<double> volumeNum;                  // Volume as number
+    std::optional<double> liquidityNum;               // Liquidity as number
+    std::optional<std::string> endDateIso;            // End date in ISO format
+    std::optional<std::string> startDateIso;          // Start date in ISO format
+    std::optional<bool> hasReviewedDates;             // Whether dates have been reviewed
+    std::optional<double> volume24hr;                 // 24-hour volume
+    std::optional<double> volume1wk;                  // 1-week volume
+    std::optional<double> volume1mo;                  // 1-month volume
+    std::optional<double> volume1yr;                  // 1-year volume
+    std::optional<std::string> clobTokenIds;          // CLOB token IDs (JSON string)
+    std::optional<std::string> umaBond;               // UMA bond
+    std::optional<std::string> umaReward;             // UMA reward
+    std::optional<double> volume24hrClob;             // 24-hour CLOB volume
+    std::optional<double> volume1wkClob;              // 1-week CLOB volume
+    std::optional<double> volume1moClob;              // 1-month CLOB volume
+    std::optional<double> volume1yrClob;              // 1-year CLOB volume
+    std::optional<double> volumeClob;                 // Total CLOB volume
+    std::optional<double> liquidityClob;              // CLOB liquidity
+    std::optional<bool> acceptingOrders;              // Whether accepting orders
+    std::optional<bool> negRisk;                      // Negative risk
+    std::optional<bool> ready;                        // Whether market is ready
+    std::optional<bool> funded;                       // Whether market is funded
+    std::optional<std::string> acceptingOrdersTimestamp; // When orders started being accepted
+    std::optional<bool> cyom;                         // Create your own market
+    std::optional<double> competitive;                // Competitive status
+    std::optional<bool> pagerDutyNotificationEnabled; // PagerDuty notifications enabled
+    std::optional<bool> approved;                     // Whether market is approved
+    std::optional<double> rewardsMinSize;             // Minimum reward size
+    std::optional<double> rewardsMaxSpread;           // Maximum reward spread
+    std::optional<double> spread;                     // Market spread
     std::optional<double> oneDayPriceChange;          // 1-day price change
     std::optional<double> oneWeekPriceChange;         // 1-week price change
     std::optional<double> oneMonthPriceChange;        // 1-month price change
@@ -224,7 +224,7 @@ struct GammaMarket {
     std::optional<bool> clearBookOnStart;             // Clear book on start
     std::optional<bool> manualActivation;             // Manual activation
     std::optional<bool> negRiskOther;                 // Negative risk other
-    std::string umaResolutionStatuses; // UMA resolution statuses (JSON string)
+    std::optional<std::string> umaResolutionStatuses; // UMA resolution statuses (JSON string)
     std::optional<bool> pendingDeployment;            // Pending deployment
     std::optional<bool> deploying;                    // Currently deploying
     std::optional<bool> rfqEnabled;                   // RFQ enabled
@@ -264,72 +264,71 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PolymarketUserActivity, proxyWallet, timestam
 
 // Custom serialization for GammaMarket to handle the actual API response structure
 inline void to_json(nlohmann::json& j, const GammaMarket& m) {
-    j = nlohmann::json{
-        {"id", m.id},
-        {"question", m.question},
-        {"conditionId", m.conditionId},
-        {"slug", m.slug},
-        {"resolutionSource", m.resolutionSource},
-        {"endDate", m.endDate},
-        {"liquidity", m.liquidity},
-        {"startDate", m.startDate},
-        {"image", m.image},
-        {"icon", m.icon},
-        {"description", m.description},
-        {"outcomes", m.outcomes},
-        {"outcomePrices", m.outcomePrices},
-        {"volume", m.volume},
-        {"active", m.active},
-        {"closed", m.closed},
-        {"marketMakerAddress", m.marketMakerAddress},
-        {"createdAt", m.createdAt},
-        {"updatedAt", m.updatedAt},
-        {"new", m.new_market},
-        {"featured", m.featured},
-        {"submitted_by", m.submitted_by},
-        {"archived", m.archived},
-        {"resolvedBy", m.resolvedBy},
-        {"restricted", m.restricted},
-        {"groupItemTitle", m.groupItemTitle},
-        {"groupItemThreshold", m.groupItemThreshold},
-        {"questionID", m.questionID},
-        {"enableOrderBook", m.enableOrderBook},
-        {"orderPriceMinTickSize", m.orderPriceMinTickSize},
-        {"orderMinSize", m.orderMinSize},
-        {"volumeNum", m.volumeNum},
-        {"liquidityNum", m.liquidityNum},
-        {"endDateIso", m.endDateIso},
-        {"startDateIso", m.startDateIso},
-        {"hasReviewedDates", m.hasReviewedDates},
-        {"volume24hr", m.volume24hr},
-        {"volume1wk", m.volume1wk},
-        {"volume1mo", m.volume1mo},
-        {"volume1yr", m.volume1yr},
-        {"clobTokenIds", m.clobTokenIds},
-        {"umaBond", m.umaBond},
-        {"umaReward", m.umaReward},
-        {"volume24hrClob", m.volume24hrClob},
-        {"volume1wkClob", m.volume1wkClob},
-        {"volume1moClob", m.volume1moClob},
-        {"volume1yrClob", m.volume1yrClob},
-        {"volumeClob", m.volumeClob},
-        {"liquidityClob", m.liquidityClob},
-        {"acceptingOrders", m.acceptingOrders},
-        {"negRisk", m.negRisk},
-        {"ready", m.ready},
-        {"funded", m.funded},
-        {"acceptingOrdersTimestamp", m.acceptingOrdersTimestamp},
-        {"cyom", m.cyom},
-        {"competitive", m.competitive},
-        {"pagerDutyNotificationEnabled", m.pagerDutyNotificationEnabled},
-        {"approved", m.approved},
-        {"rewardsMinSize", m.rewardsMinSize},
-        {"rewardsMaxSpread", m.rewardsMaxSpread},
-        {"spread", m.spread},
-        {"umaResolutionStatuses", m.umaResolutionStatuses}
-    };
+    j = nlohmann::json{};
     
-    // Add optional fields only if they have values
+    // Add all fields only if they have values
+    if (m.id.has_value()) j["id"] = m.id.value();
+    if (m.question.has_value()) j["question"] = m.question.value();
+    if (m.conditionId.has_value()) j["conditionId"] = m.conditionId.value();
+    if (m.slug.has_value()) j["slug"] = m.slug.value();
+    if (m.resolutionSource.has_value()) j["resolutionSource"] = m.resolutionSource.value();
+    if (m.endDate.has_value()) j["endDate"] = m.endDate.value();
+    if (m.liquidity.has_value()) j["liquidity"] = m.liquidity.value();
+    if (m.startDate.has_value()) j["startDate"] = m.startDate.value();
+    if (m.image.has_value()) j["image"] = m.image.value();
+    if (m.icon.has_value()) j["icon"] = m.icon.value();
+    if (m.description.has_value()) j["description"] = m.description.value();
+    if (m.outcomes.has_value()) j["outcomes"] = m.outcomes.value();
+    if (m.outcomePrices.has_value()) j["outcomePrices"] = m.outcomePrices.value();
+    if (m.volume.has_value()) j["volume"] = m.volume.value();
+    if (m.active.has_value()) j["active"] = m.active.value();
+    if (m.closed.has_value()) j["closed"] = m.closed.value();
+    if (m.marketMakerAddress.has_value()) j["marketMakerAddress"] = m.marketMakerAddress.value();
+    if (m.createdAt.has_value()) j["createdAt"] = m.createdAt.value();
+    if (m.updatedAt.has_value()) j["updatedAt"] = m.updatedAt.value();
+    if (m.new_market.has_value()) j["new"] = m.new_market.value();
+    if (m.featured.has_value()) j["featured"] = m.featured.value();
+    if (m.submitted_by.has_value()) j["submitted_by"] = m.submitted_by.value();
+    if (m.archived.has_value()) j["archived"] = m.archived.value();
+    if (m.resolvedBy.has_value()) j["resolvedBy"] = m.resolvedBy.value();
+    if (m.restricted.has_value()) j["restricted"] = m.restricted.value();
+    if (m.groupItemTitle.has_value()) j["groupItemTitle"] = m.groupItemTitle.value();
+    if (m.groupItemThreshold.has_value()) j["groupItemThreshold"] = m.groupItemThreshold.value();
+    if (m.questionID.has_value()) j["questionID"] = m.questionID.value();
+    if (m.enableOrderBook.has_value()) j["enableOrderBook"] = m.enableOrderBook.value();
+    if (m.orderPriceMinTickSize.has_value()) j["orderPriceMinTickSize"] = m.orderPriceMinTickSize.value();
+    if (m.orderMinSize.has_value()) j["orderMinSize"] = m.orderMinSize.value();
+    if (m.volumeNum.has_value()) j["volumeNum"] = m.volumeNum.value();
+    if (m.liquidityNum.has_value()) j["liquidityNum"] = m.liquidityNum.value();
+    if (m.endDateIso.has_value()) j["endDateIso"] = m.endDateIso.value();
+    if (m.startDateIso.has_value()) j["startDateIso"] = m.startDateIso.value();
+    if (m.hasReviewedDates.has_value()) j["hasReviewedDates"] = m.hasReviewedDates.value();
+    if (m.volume24hr.has_value()) j["volume24hr"] = m.volume24hr.value();
+    if (m.volume1wk.has_value()) j["volume1wk"] = m.volume1wk.value();
+    if (m.volume1mo.has_value()) j["volume1mo"] = m.volume1mo.value();
+    if (m.volume1yr.has_value()) j["volume1yr"] = m.volume1yr.value();
+    if (m.clobTokenIds.has_value()) j["clobTokenIds"] = m.clobTokenIds.value();
+    if (m.umaBond.has_value()) j["umaBond"] = m.umaBond.value();
+    if (m.umaReward.has_value()) j["umaReward"] = m.umaReward.value();
+    if (m.volume24hrClob.has_value()) j["volume24hrClob"] = m.volume24hrClob.value();
+    if (m.volume1wkClob.has_value()) j["volume1wkClob"] = m.volume1wkClob.value();
+    if (m.volume1moClob.has_value()) j["volume1moClob"] = m.volume1moClob.value();
+    if (m.volume1yrClob.has_value()) j["volume1yrClob"] = m.volume1yrClob.value();
+    if (m.volumeClob.has_value()) j["volumeClob"] = m.volumeClob.value();
+    if (m.liquidityClob.has_value()) j["liquidityClob"] = m.liquidityClob.value();
+    if (m.acceptingOrders.has_value()) j["acceptingOrders"] = m.acceptingOrders.value();
+    if (m.negRisk.has_value()) j["negRisk"] = m.negRisk.value();
+    if (m.ready.has_value()) j["ready"] = m.ready.value();
+    if (m.funded.has_value()) j["funded"] = m.funded.value();
+    if (m.acceptingOrdersTimestamp.has_value()) j["acceptingOrdersTimestamp"] = m.acceptingOrdersTimestamp.value();
+    if (m.cyom.has_value()) j["cyom"] = m.cyom.value();
+    if (m.competitive.has_value()) j["competitive"] = m.competitive.value();
+    if (m.pagerDutyNotificationEnabled.has_value()) j["pagerDutyNotificationEnabled"] = m.pagerDutyNotificationEnabled.value();
+    if (m.approved.has_value()) j["approved"] = m.approved.value();
+    if (m.rewardsMinSize.has_value()) j["rewardsMinSize"] = m.rewardsMinSize.value();
+    if (m.rewardsMaxSpread.has_value()) j["rewardsMaxSpread"] = m.rewardsMaxSpread.value();
+    if (m.spread.has_value()) j["spread"] = m.spread.value();
+    if (m.umaResolutionStatuses.has_value()) j["umaResolutionStatuses"] = m.umaResolutionStatuses.value();
     if (m.oneDayPriceChange.has_value()) j["oneDayPriceChange"] = m.oneDayPriceChange.value();
     if (m.oneWeekPriceChange.has_value()) j["oneWeekPriceChange"] = m.oneWeekPriceChange.value();
     if (m.oneMonthPriceChange.has_value()) j["oneMonthPriceChange"] = m.oneMonthPriceChange.value();
@@ -346,68 +345,68 @@ inline void to_json(nlohmann::json& j, const GammaMarket& m) {
 }
 
 inline void from_json(const nlohmann::json& j, GammaMarket& m) {
-    j.at("id").get_to(m.id);
-    j.at("question").get_to(m.question);
-    j.at("conditionId").get_to(m.conditionId);
-    j.at("slug").get_to(m.slug);
-    j.at("resolutionSource").get_to(m.resolutionSource);
-    j.at("endDate").get_to(m.endDate);
-    j.at("liquidity").get_to(m.liquidity);
-    j.at("startDate").get_to(m.startDate);
-    j.at("image").get_to(m.image);
-    j.at("icon").get_to(m.icon);
-    j.at("description").get_to(m.description);
-    j.at("outcomes").get_to(m.outcomes);
-    j.at("outcomePrices").get_to(m.outcomePrices);
-    j.at("volume").get_to(m.volume);
-    j.at("active").get_to(m.active);
-    j.at("closed").get_to(m.closed);
-    j.at("marketMakerAddress").get_to(m.marketMakerAddress);
-    j.at("createdAt").get_to(m.createdAt);
-    j.at("updatedAt").get_to(m.updatedAt);
-    j.at("new").get_to(m.new_market);
-    j.at("featured").get_to(m.featured);
-    j.at("submitted_by").get_to(m.submitted_by);
-    j.at("archived").get_to(m.archived);
-    j.at("resolvedBy").get_to(m.resolvedBy);
-    j.at("restricted").get_to(m.restricted);
-    j.at("groupItemTitle").get_to(m.groupItemTitle);
-    j.at("groupItemThreshold").get_to(m.groupItemThreshold);
-    j.at("questionID").get_to(m.questionID);
-    j.at("enableOrderBook").get_to(m.enableOrderBook);
-    j.at("orderPriceMinTickSize").get_to(m.orderPriceMinTickSize);
-    j.at("orderMinSize").get_to(m.orderMinSize);
-    j.at("volumeNum").get_to(m.volumeNum);
-    j.at("liquidityNum").get_to(m.liquidityNum);
-    j.at("endDateIso").get_to(m.endDateIso);
-    j.at("startDateIso").get_to(m.startDateIso);
-    j.at("hasReviewedDates").get_to(m.hasReviewedDates);
-    j.at("volume24hr").get_to(m.volume24hr);
-    j.at("volume1wk").get_to(m.volume1wk);
-    j.at("volume1mo").get_to(m.volume1mo);
-    j.at("volume1yr").get_to(m.volume1yr);
-    j.at("clobTokenIds").get_to(m.clobTokenIds);
-    j.at("umaBond").get_to(m.umaBond);
-    j.at("umaReward").get_to(m.umaReward);
-    j.at("volume24hrClob").get_to(m.volume24hrClob);
-    j.at("volume1wkClob").get_to(m.volume1wkClob);
-    j.at("volume1moClob").get_to(m.volume1moClob);
-    j.at("volume1yrClob").get_to(m.volume1yrClob);
-    j.at("volumeClob").get_to(m.volumeClob);
-    j.at("liquidityClob").get_to(m.liquidityClob);
-    j.at("acceptingOrders").get_to(m.acceptingOrders);
-    j.at("negRisk").get_to(m.negRisk);
-    j.at("ready").get_to(m.ready);
-    j.at("funded").get_to(m.funded);
-    j.at("acceptingOrdersTimestamp").get_to(m.acceptingOrdersTimestamp);
-    j.at("cyom").get_to(m.cyom);
-    j.at("competitive").get_to(m.competitive);
-    j.at("pagerDutyNotificationEnabled").get_to(m.pagerDutyNotificationEnabled);
-    j.at("approved").get_to(m.approved);
-    j.at("rewardsMinSize").get_to(m.rewardsMinSize);
-    j.at("rewardsMaxSpread").get_to(m.rewardsMaxSpread);
-    j.at("spread").get_to(m.spread);
-    j.at("umaResolutionStatuses").get_to(m.umaResolutionStatuses);
+    m.id = j.contains("id") ? std::optional<std::string>(j["id"].get<std::string>()) : std::nullopt;
+    m.question = j.contains("question") ? std::optional<std::string>(j["question"].get<std::string>()) : std::nullopt;
+    m.conditionId = j.contains("conditionId") ? std::optional<std::string>(j["conditionId"].get<std::string>()) : std::nullopt;
+    m.slug = j.contains("slug") ? std::optional<std::string>(j["slug"].get<std::string>()) : std::nullopt;
+    m.resolutionSource = j.contains("resolutionSource") ? std::optional<std::string>(j["resolutionSource"].get<std::string>()) : std::nullopt;
+    m.endDate = j.contains("endDate") ? std::optional<std::string>(j["endDate"].get<std::string>()) : std::nullopt;
+    m.liquidity = j.contains("liquidity") ? std::optional<std::string>(j["liquidity"].get<std::string>()) : std::nullopt;
+    m.startDate = j.contains("startDate") ? std::optional<std::string>(j["startDate"].get<std::string>()) : std::nullopt;
+    m.image = j.contains("image") ? std::optional<std::string>(j["image"].get<std::string>()) : std::nullopt;
+    m.icon = j.contains("icon") ? std::optional<std::string>(j["icon"].get<std::string>()) : std::nullopt;
+    m.description = j.contains("description") ? std::optional<std::string>(j["description"].get<std::string>()) : std::nullopt;
+    m.outcomes = j.contains("outcomes") ? std::optional<std::string>(j["outcomes"].get<std::string>()) : std::nullopt;
+    m.outcomePrices = j.contains("outcomePrices") ? std::optional<std::string>(j["outcomePrices"].get<std::string>()) : std::nullopt;
+    m.volume = j.contains("volume") ? std::optional<std::string>(j["volume"].get<std::string>()) : std::nullopt;
+    m.active = j.contains("active") ? std::optional<bool>(j["active"].get<bool>()) : std::nullopt;
+    m.closed = j.contains("closed") ? std::optional<bool>(j["closed"].get<bool>()) : std::nullopt;
+    m.marketMakerAddress = j.contains("marketMakerAddress") ? std::optional<std::string>(j["marketMakerAddress"].get<std::string>()) : std::nullopt;
+    m.createdAt = j.contains("createdAt") ? std::optional<std::string>(j["createdAt"].get<std::string>()) : std::nullopt;
+    m.updatedAt = j.contains("updatedAt") ? std::optional<std::string>(j["updatedAt"].get<std::string>()) : std::nullopt;
+    m.new_market = j.contains("new") ? std::optional<bool>(j["new"].get<bool>()) : std::nullopt;
+    m.featured = j.contains("featured") ? std::optional<bool>(j["featured"].get<bool>()) : std::nullopt;
+    m.submitted_by = j.contains("submitted_by") ? std::optional<std::string>(j["submitted_by"].get<std::string>()) : std::nullopt;
+    m.archived = j.contains("archived") ? std::optional<bool>(j["archived"].get<bool>()) : std::nullopt;
+    m.resolvedBy = j.contains("resolvedBy") ? std::optional<std::string>(j["resolvedBy"].get<std::string>()) : std::nullopt;
+    m.restricted = j.contains("restricted") ? std::optional<bool>(j["restricted"].get<bool>()) : std::nullopt;
+    m.groupItemTitle = j.contains("groupItemTitle") ? std::optional<std::string>(j["groupItemTitle"].get<std::string>()) : std::nullopt;
+    m.groupItemThreshold = j.contains("groupItemThreshold") ? std::optional<std::string>(j["groupItemThreshold"].get<std::string>()) : std::nullopt;
+    m.questionID = j.contains("questionID") ? std::optional<std::string>(j["questionID"].get<std::string>()) : std::nullopt;
+    m.enableOrderBook = j.contains("enableOrderBook") ? std::optional<bool>(j["enableOrderBook"].get<bool>()) : std::nullopt;
+    m.orderPriceMinTickSize = j.contains("orderPriceMinTickSize") ? std::optional<double>(j["orderPriceMinTickSize"].get<double>()) : std::nullopt;
+    m.orderMinSize = j.contains("orderMinSize") ? std::optional<double>(j["orderMinSize"].get<double>()) : std::nullopt;
+    m.volumeNum = j.contains("volumeNum") ? std::optional<double>(j["volumeNum"].get<double>()) : std::nullopt;
+    m.liquidityNum = j.contains("liquidityNum") ? std::optional<double>(j["liquidityNum"].get<double>()) : std::nullopt;
+    m.endDateIso = j.contains("endDateIso") ? std::optional<std::string>(j["endDateIso"].get<std::string>()) : std::nullopt;
+    m.startDateIso = j.contains("startDateIso") ? std::optional<std::string>(j["startDateIso"].get<std::string>()) : std::nullopt;
+    m.hasReviewedDates = j.contains("hasReviewedDates") ? std::optional<bool>(j["hasReviewedDates"].get<bool>()) : std::nullopt;
+    m.volume24hr = j.contains("volume24hr") ? std::optional<double>(j["volume24hr"].get<double>()) : std::nullopt;
+    m.volume1wk = j.contains("volume1wk") ? std::optional<double>(j["volume1wk"].get<double>()) : std::nullopt;
+    m.volume1mo = j.contains("volume1mo") ? std::optional<double>(j["volume1mo"].get<double>()) : std::nullopt;
+    m.volume1yr = j.contains("volume1yr") ? std::optional<double>(j["volume1yr"].get<double>()) : std::nullopt;
+    m.clobTokenIds = j.contains("clobTokenIds") ? std::optional<std::string>(j["clobTokenIds"].get<std::string>()) : std::nullopt;
+    m.umaBond = j.contains("umaBond") ? std::optional<std::string>(j["umaBond"].get<std::string>()) : std::nullopt;
+    m.umaReward = j.contains("umaReward") ? std::optional<std::string>(j["umaReward"].get<std::string>()) : std::nullopt;
+    m.volume24hrClob = j.contains("volume24hrClob") ? std::optional<double>(j["volume24hrClob"].get<double>()) : std::nullopt;
+    m.volume1wkClob = j.contains("volume1wkClob") ? std::optional<double>(j["volume1wkClob"].get<double>()) : std::nullopt;
+    m.volume1moClob = j.contains("volume1moClob") ? std::optional<double>(j["volume1moClob"].get<double>()) : std::nullopt;
+    m.volume1yrClob = j.contains("volume1yrClob") ? std::optional<double>(j["volume1yrClob"].get<double>()) : std::nullopt;
+    m.volumeClob = j.contains("volumeClob") ? std::optional<double>(j["volumeClob"].get<double>()) : std::nullopt;
+    m.liquidityClob = j.contains("liquidityClob") ? std::optional<double>(j["liquidityClob"].get<double>()) : std::nullopt;
+    m.acceptingOrders = j.contains("acceptingOrders") ? std::optional<bool>(j["acceptingOrders"].get<bool>()) : std::nullopt;
+    m.negRisk = j.contains("negRisk") ? std::optional<bool>(j["negRisk"].get<bool>()) : std::nullopt;
+    m.ready = j.contains("ready") ? std::optional<bool>(j["ready"].get<bool>()) : std::nullopt;
+    m.funded = j.contains("funded") ? std::optional<bool>(j["funded"].get<bool>()) : std::nullopt;
+    m.acceptingOrdersTimestamp = j.contains("acceptingOrdersTimestamp") ? std::optional<std::string>(j["acceptingOrdersTimestamp"].get<std::string>()) : std::nullopt;
+    m.cyom = j.contains("cyom") ? std::optional<bool>(j["cyom"].get<bool>()) : std::nullopt;
+    m.competitive = j.contains("competitive") ? std::optional<double>(j["competitive"].get<double>()) : std::nullopt;
+    m.pagerDutyNotificationEnabled = j.contains("pagerDutyNotificationEnabled") ? std::optional<bool>(j["pagerDutyNotificationEnabled"].get<bool>()) : std::nullopt;
+    m.approved = j.contains("approved") ? std::optional<bool>(j["approved"].get<bool>()) : std::nullopt;
+    m.rewardsMinSize = j.contains("rewardsMinSize") ? std::optional<double>(j["rewardsMinSize"].get<double>()) : std::nullopt;
+    m.rewardsMaxSpread = j.contains("rewardsMaxSpread") ? std::optional<double>(j["rewardsMaxSpread"].get<double>()) : std::nullopt;
+    m.spread = j.contains("spread") ? std::optional<double>(j["spread"].get<double>()) : std::nullopt;
+    m.umaResolutionStatuses = j.contains("umaResolutionStatuses") ? std::optional<std::string>(j["umaResolutionStatuses"].get<std::string>()) : std::nullopt;
     
     // Handle optional fields
     m.oneDayPriceChange = j.contains("oneDayPriceChange") ? std::optional<double>(j["oneDayPriceChange"].get<double>()) : std::nullopt;

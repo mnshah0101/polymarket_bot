@@ -108,12 +108,22 @@ int main(int argc, char* argv[]) {
 
         // Test Gamma Markets API
         std::cout << "Testing Gamma Markets API..." << std::endl;
-        auto gammaMarkets = polyClient.getGammaMarkets(1, 5);
-        std::cout << "Found " << gammaMarkets.markets.size() << " Gamma markets" << std::endl;
-        
-        for (const auto& market : gammaMarkets.markets) {
-            std::cout << "Gamma Market ID: " << market.id << ", Slug: " << market.slug << std::endl;
+        for (int i = 0; i < 50; i++) {  
+            auto gammaMarkets = polyClient.getGammaMarkets(i, 500);
+            if (gammaMarkets.markets.empty()) {
+                break;
+            }
+            std::cout << "Gamma Markets: " << gammaMarkets.markets.size() << std::endl;
+            std::cout << "Found " << gammaMarkets.markets.size() << " Gamma markets" << std::endl;
+
+            for (const auto &market : gammaMarkets.markets)
+            {
+                std::cout << "Gamma Market ID: " << (market.id.has_value() ? market.id.value() : "N/A")
+                          << ", Slug: " << (market.slug.has_value() ? market.slug.value() : "N/A") << std::endl;
+            }
         }
+
+      
 
         // Test Polymarket CLOB API
         std::cout << "Testing Polymarket CLOB API..." << std::endl;

@@ -137,6 +137,9 @@ polymarket_bot::common::PolymarketMarket PolymarketApiClient::getMarketInfo(cons
 
 // Gamma Markets API methods
 polymarket_bot::common::GammaMarketsResponse PolymarketApiClient::getGammaMarkets(int page, int limit) {
+    if(limit > 500) {
+        limit = 500;
+    }
     // Get yesterday's date in ISO format
     auto now = std::chrono::system_clock::now();
     auto yesterday = now - std::chrono::hours(24);
@@ -153,11 +156,14 @@ polymarket_bot::common::GammaMarketsResponse PolymarketApiClient::getGammaMarket
     
     char date_str_future[32];
     std::strftime(date_str_future, sizeof(date_str_future), "%Y-%m-%dT%H:%M:%SZ", tm_future);
+
+    //lets paginage with offset
+
+    int offset = (page - 1) * limit;
     
-    std::string endpoint = "/markets?active=true&closed=false&end_date_min=" + std::string(date_str) + "&start_date_max=" + std::string(date_str_future) + "&page=" + std::to_string(page) + "&limit=" + std::to_string(limit);
+    std::string endpoint = "/markets?active=true&closed=false&end_date_min=" + std::string(date_str) + "&start_date_max=" + std::string(date_str_future) + "&offset=" + std::to_string(offset) + "&limit=" + std::to_string(limit) + "&offset=" + std::to_string(offset);
     std::string response = makeGammaRequest(endpoint);
     
-    std::cout << "Gamma markets response: " << response << std::endl;
     polymarket_bot::common::GammaMarketsResponse result;
     try {
         nlohmann::json j = nlohmann::json::parse(response);
