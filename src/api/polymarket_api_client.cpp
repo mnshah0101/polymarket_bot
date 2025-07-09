@@ -98,6 +98,7 @@ std::string PolymarketApiClient::makeGammaRequest(const std::string& endpoint, c
         curl_easy_cleanup(curl);
     }
 
+
     return response;
 }
 
@@ -150,7 +151,7 @@ polymarket_bot::common::GammaMarketsResponse PolymarketApiClient::getGammaMarket
     std::strftime(date_str, sizeof(date_str), "%Y-%m-%dT%H:%M:%SZ", tm);
     
     // Get two weeks from now in ISO format
-    auto twoWeeksFromNow = now + std::chrono::hours(24 * 14);
+    auto twoWeeksFromNow = now + std::chrono::hours(24 * 7);
     auto time_t_future = std::chrono::system_clock::to_time_t(twoWeeksFromNow);
     std::tm* tm_future = std::gmtime(&time_t_future);
     

@@ -95,7 +95,7 @@ std::vector<polymarket_bot::common::RawOddsGame> OddsApiClient::fetchOdds(const 
     // lets load the .env for the odds api key from the config manager
     auto oddsApiKey = configManager.getOddsApiKey();
     // get todays date and the next week date - save as commenceTimeFrom and commenceTimeTo, ISO 8601 format
-    auto commenceTimeFrom = std::chrono::system_clock::now();
+    auto commenceTimeFrom = std::chrono::system_clock::now() + std::chrono::hours(1);
     auto commenceTimeTo = commenceTimeFrom + std::chrono::hours(7 * 24);
 
     // this should return a vector of RawOddsData

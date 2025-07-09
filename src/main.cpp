@@ -1,8 +1,11 @@
 #include <iostream>
 #include <cstdlib>
+#include <algorithm>
 #include "api/odds_api_client.h"
 #include "api/polymarket_api_client.h"
 #include "config/config_manager.h"
+#include "market/market_matcher.h"
+#include <fstream>
 
 int main(int argc, char* argv[]) {
     std::cout << "Polymarket Bot v1.0.0" << std::endl;
@@ -106,36 +109,25 @@ int main(int argc, char* argv[]) {
 
         std::cout << "Polymarket API client initialized successfully" << std::endl;
 
-        // Test Gamma Markets API
-        std::cout << "Testing Gamma Markets API..." << std::endl;
-        for (int i = 0; i < 50; i++) {  
-            auto gammaMarkets = polyClient.getGammaMarkets(i, 500);
-            if (gammaMarkets.markets.empty()) {
-                break;
-            }
-            std::cout << "Gamma Markets: " << gammaMarkets.markets.size() << std::endl;
-            std::cout << "Found " << gammaMarkets.markets.size() << " Gamma markets" << std::endl;
-
-            for (const auto &market : gammaMarkets.markets)
-            {
-                std::cout << "Gamma Market ID: " << (market.id.has_value() ? market.id.value() : "N/A")
-                          << ", Slug: " << (market.slug.has_value() ? market.slug.value() : "N/A") << std::endl;
-            }
-        }
-
-      
-
-        // Test Polymarket CLOB API
-        std::cout << "Testing Polymarket CLOB API..." << std::endl;
-        auto polyMarkets = polyClient.getCurrentMarkets();
-        std::cout << "Found " << polyMarkets.size() << " Polymarket markets" << std::endl;
-
-        auto odds = client.fetchOdds(sports);
-
-        std::cout << "Odds: " << odds.size() << std::endl;
-
-        for (const auto& odd : odds) {
-            std::cout << "Odd: " << odd.id << std::endl;
+ 
+        
+        // Test MarketMatcher
+        std::cout << "\n=== Testing MarketMatcher ===" << std::endl;
+        
+        MarketMatcher matcher(polyClient, client, configManager);
+        std::cout << "MarketMatcher created successfully" << std::endl;
+        
+        // Load all data
+        matcher.loadAll();
+        
+        // Match markets
+        auto matches = matcher.matchMarkets();
+        std::cout << "Found " << matches.size() << " market matches" << std::endl;
+        
+        // Display some matches
+        for (size_t i = 0; i < std::min(matches.size(), size_t(5)); ++i) {
+            std::cout << "Match " << (i+1) << ": Gamma ID=" << matches[i].first 
+                      << ", Odds ID=" << matches[i].second << std::endl;
         }
         
         // For now, just demonstrate that everything is working
