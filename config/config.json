@@ -7,6 +7,7 @@
         "polymarket": {
         "baseUrl": "https://clob.polymarket.com",
         "gammaBaseUrl": "https://gamma-api.polymarket.com",
+        "dataBaseUrl": "https://data-api.polymarket.com",
         "chainId": 137
     }
   },

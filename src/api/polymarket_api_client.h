@@ -11,6 +11,7 @@ class PolymarketApiClient {
 private:
     std::string baseUrl;
     std::string gammaBaseUrl;
+    std::string dataBaseUrl;
     std::string address;
     std::string signature;
     std::string timestamp;
@@ -21,10 +22,12 @@ private:
     // Helper methods
     std::string makeAuthenticatedRequest(const std::string& endpoint, const std::string& method = "GET", const std::string& body = "");
     std::string makeGammaRequest(const std::string& endpoint, const std::string& method = "GET", const std::string& body = "");
+    std::string makeDataRequest(const std::string& endpoint, const std::string& method = "GET", const std::string& body = "");
 
 public:
     PolymarketApiClient(const std::string& baseUrl, 
                        const std::string& gammaBaseUrl,
+                       const std::string& dataBaseUrl,
                        const std::string& address,
                        const std::string& signature,
                        const std::string& timestamp,
@@ -37,7 +40,17 @@ public:
     std::vector<common::PolymarketMarket> getCurrentMarkets();
     common::PolymarketOrderResponse executeOrder(const common::PolymarketOpenOrder& order);
     double getBalance(const std::string& user);
-    std::vector<common::PolymarketOpenOrder> getPositions();
+    std::vector<common::PolymarketPosition> getPositions(const std::string& user,
+                                                         const std::string& market = "",
+                                                         double sizeThreshold = 1.0,
+                                                         bool redeemable = false,
+                                                         bool mergeable = false,
+                                                         const std::string& title = "",
+                                                         const std::string& eventId = "",
+                                                         int limit = 50,
+                                                         int offset = 0,
+                                                         const std::string& sortBy = "TOKENS",
+                                                         const std::string& sortDirection = "DESC");
     std::vector<common::PolymarketUserActivity> getUserActivity(const std::string& user, 
                                                        int limit = 100, 
                                                        int offset = 0,

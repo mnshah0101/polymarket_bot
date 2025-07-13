@@ -19,13 +19,14 @@ static size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::stri
 
 PolymarketApiClient::PolymarketApiClient(const std::string& baseUrl, 
                                          const std::string& gammaBaseUrl,
+                                         const std::string& dataBaseUrl,
                                          const std::string& address,
                                          const std::string& signature,
                                          const std::string& timestamp,
                                          const std::string& apiKey,
                                          const std::string& passphrase,
                                          int chainId)
-    : baseUrl(baseUrl), gammaBaseUrl(gammaBaseUrl), address(address), signature(signature),
+    : baseUrl(baseUrl), gammaBaseUrl(gammaBaseUrl), dataBaseUrl(dataBaseUrl), address(address), signature(signature),
       timestamp(timestamp), apiKey(apiKey), passphrase(passphrase), chainId(chainId) {
 }
 
@@ -108,12 +109,129 @@ polymarket_bot::common::PolymarketOrderResponse PolymarketApiClient::executeOrde
     return polymarket_bot::common::PolymarketOrderResponse();
 }
 
-double PolymarketApiClient::getBalance(const std::string& user) {
-    return 0.0;
+std::string PolymarketApiClient::makeDataRequest(const std::string &endpoint, const std::string &method, const std::string &body)
+{
+    CURL *curl = curl_easy_init();
+    std::string response;
+
+    if (curl)
+    {
+        std::string url = dataBaseUrl + endpoint;
+
+        struct curl_slist *headers = NULL;
+        headers = curl_slist_append(headers, "Content-Type: application/json");
+
+        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+        curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, method.c_str());
+
+        if (!body.empty())
+        {
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, body.c_str());
+        }
+
+        CURLcode res = curl_easy_perform(curl);
+        if (res != CURLE_OK)
+        {
+            std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
+        }
+
+        curl_slist_free_all(headers);
+        curl_easy_cleanup(curl);
+    }
+
+    return response;
 }
 
-std::vector<polymarket_bot::common::PolymarketOpenOrder> PolymarketApiClient::getPositions() {
-    return std::vector<polymarket_bot::common::PolymarketOpenOrder>();
+double PolymarketApiClient::getBalance(const std::string& user) {
+    // call https://data-api.polymarket.com/value?user={user_address} - not a gamma request a data request - since we only use this for the data api, we can do all o
+    std::string endpoint = "/value?user=" + user;
+    std::string response = makeDataRequest(endpoint);
+    
+    try {
+        nlohmann::json j = nlohmann::json::parse(response);
+        
+        // Check if response is an object with a "value" field
+        if (j.is_object() && j.contains("value")) {
+            return j["value"].get<double>();
+        }
+        // Check if response is an array (some APIs return arrays)
+        else if (j.is_array() && j.size() > 0) {
+            // Try to get the first element if it's an array
+            return j[0]["value"].get<double>();
+        }
+        else {
+            std::cerr << "Unexpected balance response structure: " << response << std::endl;
+            return 0.0;
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "Error parsing balance response: " << e.what() << std::endl;
+        std::cerr << "Response: " << response << std::endl;
+        return 0.0;
+    }
+}
+
+std::vector<polymarket_bot::common::PolymarketPosition> PolymarketApiClient::getPositions(const std::string& user,
+                                                                                           const std::string& market,
+                                                                                           double sizeThreshold,
+                                                                                           bool redeemable,
+                                                                                           bool mergeable,
+                                                                                           const std::string& title,
+                                                                                           const std::string& eventId,
+                                                                                           int limit,
+                                                                                           int offset,
+                                                                                           const std::string& sortBy,
+                                                                                           const std::string& sortDirection) {
+    // Build query parameters
+    std::string endpoint = "/positions?user=" + user;
+    
+    if (!market.empty()) {
+        endpoint += "&market=" + market;
+    }
+    
+    endpoint += "&sizeThreshold=" + std::to_string(sizeThreshold);
+    
+    if (redeemable) {
+        endpoint += "&redeemable=true";
+    }
+    
+    if (mergeable) {
+        endpoint += "&mergeable=true";
+    }
+    
+    if (!title.empty()) {
+        endpoint += "&title=" + title;
+    }
+    
+    if (!eventId.empty()) {
+        endpoint += "&eventId=" + eventId;
+    }
+    
+    endpoint += "&limit=" + std::to_string(limit);
+    endpoint += "&offset=" + std::to_string(offset);
+    endpoint += "&sortBy=" + sortBy;
+    endpoint += "&sortDirection=" + sortDirection;
+    
+    std::string response = makeDataRequest(endpoint);
+    
+    std::vector<polymarket_bot::common::PolymarketPosition> positions;
+    
+    try {
+        nlohmann::json j = nlohmann::json::parse(response);
+        
+        if (j.is_array()) {
+            positions = j.get<std::vector<polymarket_bot::common::PolymarketPosition>>();
+        } else {
+            std::cerr << "Unexpected positions response structure - expected array" << std::endl;
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "Error parsing positions response: " << e.what() << std::endl;
+        std::cerr << "Response: " << response << std::endl;
+    }
+    
+    return positions;
 }
 
 std::vector<polymarket_bot::common::PolymarketUserActivity> PolymarketApiClient::getUserActivity(const std::string& user, 

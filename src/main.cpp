@@ -99,6 +99,7 @@ int main(int argc, char* argv[]) {
         polymarket_bot::api::PolymarketApiClient polyClient(
             configManager.getPolymarketBaseUrl(),
             configManager.getPolymarketGammaBaseUrl(),
+            configManager.getPolymarketDataBaseUrl(),
             configManager.getPolymarketAddress(),
             configManager.getPolymarketSignature(),
             configManager.getPolymarketTimestamp(),
@@ -109,9 +110,30 @@ int main(int argc, char* argv[]) {
 
         std::cout << "Polymarket API client initialized successfully" << std::endl;
 
- 
-        
-        // Test MarketMatcher
+        double balance = polyClient.getBalance(std::getenv("POLYMARKET_ADDRESS"));
+        std::cout << "Balance: " << balance << std::endl;
+
+        // Test getPositions functionality
+        std::cout << "\n=== Testing getPositions ===" << std::endl;
+        const char* userAddress = std::getenv("POLYMARKET_ADDRESS");
+        if (userAddress) {
+            try {
+                auto positions = polyClient.getPositions(userAddress, "", 1.0, false, false, "", "", 10, 0, "TOKENS", "DESC");
+                std::cout << "Retrieved " << positions.size() << " positions" << std::endl;
+                
+                for (size_t i = 0; i < std::min(positions.size(), size_t(3)); ++i) {
+                    const auto& pos = positions[i];
+                    std::cout << "Position " << (i+1) << ": " << pos.title 
+                              << " (Size: " << pos.size << ", PnL: " << pos.cashPnl << ")" << std::endl;
+                }
+            } catch (const std::exception& e) {
+                std::cerr << "Error getting positions: " << e.what() << std::endl;
+            }
+        } else {
+            std::cout << "POLYMARKET_ADDRESS not set, skipping positions test" << std::endl;
+        }
+
+         // Test MarketMatcher
         std::cout << "\n=== Testing MarketMatcher ===" << std::endl;
         
         MarketMatcher matcher(polyClient, client, configManager);
@@ -120,18 +142,31 @@ int main(int argc, char* argv[]) {
         // Load all data
         matcher.loadAll();
         
-        // Match markets
-        auto matches = matcher.matchMarkets();
-        std::cout << "Found " << matches.size() << " market matches" << std::endl;
+     
+        // Test arbitrage finder
+        std::cout << "\n=== Testing Arbitrage Finder ===" << std::endl;
+        auto arbitrageOpportunities = matcher.findArbitrageOpportunities(0.03); // 3% minimum edge
+        std::cout << "Found " << arbitrageOpportunities.size() << " arbitrage opportunities with >= 3% edge" << std::endl;
         
-        // Display some matches
-        for (size_t i = 0; i < std::min(matches.size(), size_t(5)); ++i) {
-            std::cout << "Match " << (i+1) << ": Gamma ID=" << matches[i].first 
-                      << ", Odds ID=" << matches[i].second << std::endl;
+        // Display top opportunities
+        for (size_t i = 0; i < std::min(arbitrageOpportunities.size(), size_t(5)); ++i) {
+            const auto& opp = arbitrageOpportunities[i];
+            std::cout << "\nOpportunity " << (i+1) << ":" << std::endl;
+            std::cout << "  Market: " << opp.polymarketSlug << std::endl;
+            std::cout << "  Game: " << opp.oddsGame << std::endl;
+            std::cout << "  Outcome: " << opp.outcome << std::endl;
+            std::cout << "  Polymarket Price: " << opp.polymarketPrice << std::endl;
+            std::cout << "  Odds Price: " << opp.oddsPrice << std::endl;
+            std::cout << "  Edge: " << (opp.edge * 100) << "%" << std::endl;
+            std::cout << "  Recommended Action: " << opp.recommendedAction << std::endl;
+            std::cout << "  Recommended Stake: $" << opp.recommendedStake << std::endl;
         }
         
         // For now, just demonstrate that everything is working
         // In a real implementation, you would start the main loop here
+
+        // Get balance
+        
         
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;

@@ -151,6 +151,34 @@ struct PolymarketUserActivity {
     std::string profileImageOptimized;
 };
 
+// Polymarket Position Structure (Data API)
+struct PolymarketPosition {
+    std::string proxyWallet;
+    std::string asset;
+    std::string conditionId;
+    double size;
+    double avgPrice;
+    double initialValue;
+    double currentValue;
+    double cashPnl;
+    double percentPnl;
+    double totalBought;
+    double realizedPnl;
+    double percentRealizedPnl;
+    double curPrice;
+    bool redeemable;
+    std::string title;
+    std::string slug;
+    std::string icon;
+    std::string eventSlug;
+    std::string outcome;
+    int outcomeIndex;
+    std::string oppositeOutcome;
+    std::string oppositeAsset;
+    std::string endDate;
+    bool negativeRisk;
+};
+
 // Gamma Markets API Response Structures
 struct GammaMarket {
     std::optional<std::string> id;                    // The unique identifier of the market
@@ -261,6 +289,7 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PolymarketMarket, condition_id, question_id, 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PolymarketOrderResponse, success, errorMsg, orderId, orderHashes)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PolymarketOpenOrder, associate_trades, id, status, market, original_size, outcome, maker_address, owner, price, side, size_matched, asset_id, expiration, type, created_at)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PolymarketUserActivity, proxyWallet, timestamp, conditionId, type, size, usdcSize, transactionHash, price, asset, side, outcomeIndex, title, slug, icon, eventSlug, outcome, name, pseudonym, bio, profileImage, profileImageOptimized)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PolymarketPosition, proxyWallet, asset, conditionId, size, avgPrice, initialValue, currentValue, cashPnl, percentPnl, totalBought, realizedPnl, percentRealizedPnl, curPrice, redeemable, title, slug, icon, eventSlug, outcome, outcomeIndex, oppositeOutcome, oppositeAsset, endDate, negativeRisk)
 
 // Custom serialization for GammaMarket to handle the actual API response structure
 inline void to_json(nlohmann::json& j, const GammaMarket& m) {

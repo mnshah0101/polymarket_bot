@@ -18,6 +18,7 @@ struct OddsApiConfig {
 struct PolymarketConfig {
     std::string baseUrl;
     std::string gammaBaseUrl;  // Gamma Markets API base URL
+    std::string dataBaseUrl;  // Data API base URL
     std::string address;
     std::string signature;
     std::string timestamp;

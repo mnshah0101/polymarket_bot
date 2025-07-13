@@ -7,6 +7,7 @@
         "polymarket": {
         "baseUrl": "https://clob.polymarket.com",
         "gammaBaseUrl": "https://gamma-api.polymarket.com",
+        "dataBaseUrl": "https://data-api.polymarket.com",
         "chainId": 137
     }
   },
@@ -19,10 +20,7 @@
     "pinnacle"
   ],
   "sports": [
-    "americanfootball_nfl",
-    "basketball_nba",
-    "baseball_mlb",
-    "soccer_epl",
+  
     "soccer_fifa_club_world_cup"
   ],
   "kelly": {

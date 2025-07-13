@@ -30,6 +30,7 @@ public:
     // Polymarket credentials management
     std::string getPolymarketBaseUrl() const;
     std::string getPolymarketGammaBaseUrl() const;
+    std::string getPolymarketDataBaseUrl() const;
     std::string getPolymarketAddress() const;
     std::string getPolymarketSignature() const;
     std::string getPolymarketTimestamp() const;

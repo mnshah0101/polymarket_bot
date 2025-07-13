@@ -271,16 +271,51 @@ std::vector<std::pair<std::string, std::string>> MarketMatcher::matchMarkets()
                 scores.emplace_back(cosineSimilarity(p.emb, gev), &p);
         std::sort(scores.begin(), scores.end(), [](auto &a, auto &b)
                   { return a.first > b.first; });
-        if (scores.size() > 5)
-            scores.resize(5);
+        
+        // Filter to show top 5 and any with score > 0.80
+        std::vector<std::pair<double, const Prep *>> filteredScores;
+        
+        // Add top 5
+        size_t topCount = std::min(scores.size(), size_t(5));
+        for (size_t i = 0; i < topCount; ++i) {
+            filteredScores.push_back(scores[i]);
+        }
+        
+        // Add any with score > 0.80 that aren't already in top 5
+        for (const auto& score : scores) {
+            if (score.first > 0.80) {
+                bool alreadyIncluded = false;
+                for (const auto& filtered : filteredScores) {
+                    if (filtered.second == score.second) {
+                        alreadyIncluded = true;
+                        break;
+                    }
+                }
+                if (!alreadyIncluded) {
+                    filteredScores.push_back(score);
+                }
+            }
+        }
+        
+        // Sort by score again
+        std::sort(filteredScores.begin(), filteredScores.end(), [](auto &a, auto &b)
+                  { return a.first > b.first; });
+        
+        scores = std::move(filteredScores);
 
         // prompt
         std::cout << "\nGame: " << game.away_team << " vs " << game.home_team
                   << " on " << dateOnly(game.commence_time) << "\n";
+        std::cout << "Showing top 5 matches and any with score > 0.80\n";
         std::cout << " 0) [No match]\n";
-        for (size_t j = 0; j < scores.size(); ++j)
+        for (size_t j = 0; j < scores.size(); ++j) {
+            std::string scoreNote = "";
+            if (scores[j].first > 0.80) {
+                scoreNote = " (HIGH SCORE)";
+            }
             std::cout << " " << (j + 1) << ") " << *scores[j].second->gm->slug
-                      << " (score=" << scores[j].first << ")\n";
+                      << " (score=" << scores[j].first << ")" << scoreNote << "\n";
+        }
         std::cout << "Select (0-" << scores.size() << "): ";
         int choice;
         if (!(std::cin >> choice))
@@ -303,4 +338,368 @@ std::vector<std::pair<std::string, std::string>> MarketMatcher::matchMarkets()
 
     std::cout << "Matching done. Total: " << results.size() << "\n";
     return results;
+}
+
+// Arbitrage calculation helpers
+
+double MarketMatcher::calculateImpliedProbability(double decimalOdds) {
+    if (decimalOdds <= 1.0) return 0.0;
+    return 1.0 / decimalOdds;
+}
+
+double MarketMatcher::calculatePolymarketProbability(double polymarketPrice) {
+    // Polymarket prices are already in probability format (0.615 = 61.5%)
+    return polymarketPrice;
+}
+
+double MarketMatcher::calculateEdge(double prob1, double prob2) {
+    if (prob1 <= 0.0 || prob2 <= 0.0) return 0.0;
+    return std::abs(prob1 - prob2) / std::min(prob1, prob2);
+}
+
+std::string MarketMatcher::determineRecommendedAction(double polymarketProb, double oddsProb) {
+    if (polymarketProb > oddsProb) {
+        return "BUY_POLYMARKET";  // Polymarket odds are higher, so buy there
+    } else {
+        return "BUY_ODDS";        // Sportsbook odds are higher, so buy there
+    }
+}
+
+double MarketMatcher::calculateOptimalStake(double edge, double totalStake) {
+    // Simple proportional stake based on edge
+    // In a real implementation, you might use Kelly Criterion or other methods
+    return totalStake * edge;
+}
+
+std::vector<ArbitrageOpportunity> MarketMatcher::findArbitrageOpportunities(double minEdge) {
+    std::cout << "[ArbitrageFinder] Starting arbitrage analysis with minimum edge: " 
+              << (minEdge * 100) << "%" << std::endl;
+    
+    std::vector<ArbitrageOpportunity> opportunities;
+    
+    // First, get matched markets
+    auto matchedMarkets = matchMarkets();
+    std::cout << "[ArbitrageFinder] Found " << matchedMarkets.size() << " matched markets" << std::endl;
+    
+    for (const auto& match : matchedMarkets) {
+        const std::string& polymarketId = match.first;
+        const std::string& oddsId = match.second;
+        
+        // Find the corresponding market data
+        const polymarket_bot::common::GammaMarket* polyMarket = nullptr;
+        const polymarket_bot::common::RawOddsGame* oddsGame = nullptr;
+        
+        // Find Polymarket market
+        for (const auto& gm : gammaMarkets) {
+            if (gm.id && *gm.id == polymarketId) {
+                polyMarket = &gm;
+                break;
+            }
+        }
+        
+        // Find Odds game
+        for (const auto& og : oddsGames) {
+            if (og.id == oddsId) {
+                oddsGame = &og;
+                break;
+            }
+        }
+        
+        if (!polyMarket || !oddsGame) {
+            std::cout << "[ArbitrageFinder] Warning: Could not find market data for match " 
+                      << polymarketId << " <-> " << oddsId << std::endl;
+            continue;
+        }
+        
+        std::cout << "[ArbitrageFinder] Analyzing match: " << polymarketId << " <-> " << oddsId << std::endl;
+        if (polyMarket->slug) {
+            std::cout << "[ArbitrageFinder] Polymarket market: " << *polyMarket->slug << std::endl;
+        }
+        std::cout << "[ArbitrageFinder] Odds game: " << oddsGame->away_team << " vs " << oddsGame->home_team << std::endl;
+        
+        // Parse Polymarket outcomes and prices
+        std::vector<std::pair<std::string, double>> polyOutcomes;
+        if (polyMarket->outcomes && polyMarket->outcomePrices) {
+            std::cout << "[ArbitrageFinder] Raw Polymarket outcomes: " << *polyMarket->outcomes << std::endl;
+            std::cout << "[ArbitrageFinder] Raw Polymarket prices: " << *polyMarket->outcomePrices << std::endl;
+            
+            try {
+                auto outcomesJson = nlohmann::json::parse(*polyMarket->outcomes);
+                auto pricesJson = nlohmann::json::parse(*polyMarket->outcomePrices);
+                
+                if (outcomesJson.is_array() && pricesJson.is_array() && 
+                    outcomesJson.size() == pricesJson.size()) {
+                    for (size_t i = 0; i < outcomesJson.size(); ++i) {
+                        std::string outcome = outcomesJson[i];
+                        // Handle both string and number price formats
+                        double price;
+                        if (pricesJson[i].is_string()) {
+                            price = std::stod(pricesJson[i].get<std::string>());
+                        } else {
+                            price = pricesJson[i].get<double>();
+                        }
+                        polyOutcomes.emplace_back(outcome, price);
+                    }
+                }
+            } catch (const std::exception& e) {
+                std::cout << "[ArbitrageFinder] Error parsing Polymarket data: " << e.what() << std::endl;
+                continue;
+            }
+        } else {
+            std::cout << "[ArbitrageFinder] Warning: Missing Polymarket outcomes or prices data" << std::endl;
+        }
+        
+        // Parse Odds outcomes - prefer Pinnacle, fallback to others
+        std::vector<std::pair<std::string, double>> oddsOutcomes;
+        bool foundPinnacle = false;
+        
+        // First pass: look for Pinnacle
+        for (const auto& bookmaker : oddsGame->bookmakers) {
+            if (bookmaker.key == "pinnacle") {
+                for (const auto& market : bookmaker.markets) {
+                    if (market.key == "h2h") {  // Head-to-head markets
+                        for (const auto& outcome : market.outcomes) {
+                            oddsOutcomes.emplace_back(outcome.name, outcome.price);
+                        }
+                        foundPinnacle = true;
+                        break;
+                    }
+                }
+                if (foundPinnacle) break;
+            }
+        }
+        
+        // Second pass: if no Pinnacle, use first available bookmaker
+        if (!foundPinnacle) {
+            for (const auto& bookmaker : oddsGame->bookmakers) {
+                for (const auto& market : bookmaker.markets) {
+                    if (market.key == "h2h") {  // Head-to-head markets
+                        for (const auto& outcome : market.outcomes) {
+                            oddsOutcomes.emplace_back(outcome.name, outcome.price);
+                        }
+                        std::cout << "[ArbitrageFinder] Using " << bookmaker.key 
+                                  << " odds (Pinnacle not available)" << std::endl;
+                        break;
+                    }
+                }
+                if (!oddsOutcomes.empty()) break;
+            }
+        } else {
+            std::cout << "[ArbitrageFinder] Using Pinnacle odds" << std::endl;
+        }
+        
+        if (oddsOutcomes.empty()) {
+            std::cout << "[ArbitrageFinder] Warning: No odds outcomes found" << std::endl;
+            std::cout << "[ArbitrageFinder] Available bookmakers:" << std::endl;
+            for (const auto& bookmaker : oddsGame->bookmakers) {
+                std::cout << "  - " << bookmaker.key << " (" << bookmaker.title << ")" << std::endl;
+                for (const auto& market : bookmaker.markets) {
+                    std::cout << "    Market: " << market.key << " with " << market.outcomes.size() << " outcomes" << std::endl;
+                }
+            }
+        }
+        
+        std::cout << "[ArbitrageFinder] Found " << polyOutcomes.size() << " Polymarket outcomes and " 
+                  << oddsOutcomes.size() << " Odds outcomes" << std::endl;
+        
+        // Interactive outcome matching for arbitrage
+        std::cout << "[ArbitrageFinder] Interactive outcome matching:" << std::endl;
+        std::cout << "Polymarket outcomes:" << std::endl;
+        for (size_t i = 0; i < polyOutcomes.size(); ++i) {
+            std::cout << "  " << (i + 1) << ") " << polyOutcomes[i].first << " @ " << polyOutcomes[i].second << std::endl;
+        }
+        std::cout << "Odds outcomes:" << std::endl;
+        for (size_t i = 0; i < oddsOutcomes.size(); ++i) {
+            std::cout << "  " << (i + 1) << ") " << oddsOutcomes[i].first << " @ " << oddsOutcomes[i].second << std::endl;
+        }
+        std::cout << std::endl;
+        
+        // Store manual matches (single and combined)
+        std::vector<std::pair<size_t, std::vector<size_t>>> manualMatches;
+        
+        std::cout << "Enter outcome matches:" << std::endl;
+        std::cout << "Format: poly_index odds_indices (comma-separated)" << std::endl;
+        std::cout << "Examples:" << std::endl;
+        std::cout << "  1 2 (matches Polymarket 1 with Odds 2)" << std::endl;
+        std::cout << "  1 2,3 (matches Polymarket 1 with combined Odds 2+3)" << std::endl;
+        std::cout << "  0 0 (skip)" << std::endl;
+        
+        while (true) {
+            std::cout << "Match (poly odds): ";
+            int polyIndex;
+            if (!(std::cin >> polyIndex)) {
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                break;
+            }
+            
+            if (polyIndex == 0) {
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                break;
+            }
+            
+            std::string oddsInput;
+            std::getline(std::cin >> std::ws, oddsInput);
+            
+            if (oddsInput == "0") {
+                break;
+            }
+            
+            // Parse comma-separated odds indices
+            std::vector<size_t> oddsIndices;
+            std::stringstream ss(oddsInput);
+            std::string token;
+            while (std::getline(ss, token, ',')) {
+                try {
+                    int index = std::stoi(token);
+                    if (index > 0 && index <= (int)oddsOutcomes.size()) {
+                        oddsIndices.push_back(index - 1);
+                    } else {
+                        std::cout << "Invalid odds index: " << index << std::endl;
+                        continue;
+                    }
+                } catch (const std::exception& e) {
+                    std::cout << "Invalid input: " << token << std::endl;
+                    continue;
+                }
+            }
+            
+            if (polyIndex > 0 && polyIndex <= (int)polyOutcomes.size() && !oddsIndices.empty()) {
+                manualMatches.emplace_back(polyIndex - 1, oddsIndices);
+                
+                std::cout << "Matched: '" << polyOutcomes[polyIndex - 1].first << "' with: ";
+                for (size_t i = 0; i < oddsIndices.size(); ++i) {
+                    if (i > 0) std::cout << " + ";
+                    std::cout << "'" << oddsOutcomes[oddsIndices[i]].first << "'";
+                }
+                std::cout << std::endl;
+            } else {
+                std::cout << "Invalid indices. Poly: 1-" << polyOutcomes.size() 
+                          << ", Odds: 1-" << oddsOutcomes.size() << std::endl;
+            }
+        }
+        
+        // Process manual matches
+        for (const auto& match : manualMatches) {
+            size_t polyIdx = match.first;
+            const std::vector<size_t>& oddsIndices = match.second;
+            
+            const auto& polyOutcome = polyOutcomes[polyIdx];
+            
+            // Calculate combined odds probability for multiple outcomes
+            double combinedOddsProb = 0.0;
+            std::string combinedOutcomeName = "";
+            
+            for (size_t oddsIdx : oddsIndices) {
+                const auto& oddsOutcome = oddsOutcomes[oddsIdx];
+                double oddsProb = calculateImpliedProbability(oddsOutcome.second);
+                combinedOddsProb += oddsProb;
+                
+                if (!combinedOutcomeName.empty()) combinedOutcomeName += " + ";
+                combinedOutcomeName += oddsOutcome.first;
+            }
+            
+            double polyProb = calculatePolymarketProbability(polyOutcome.second);
+            double edge = calculateEdge(polyProb, combinedOddsProb);
+            
+            std::cout << "[ArbitrageFinder] MANUAL MATCH:" << std::endl;
+            std::cout << "  Polymarket: " << polyOutcome.first << " @ " << polyOutcome.second 
+                      << " (implied prob: " << (polyProb * 100) << "%)" << std::endl;
+            std::cout << "  Odds (combined): " << combinedOutcomeName 
+                      << " (implied prob: " << (combinedOddsProb * 100) << "%)" << std::endl;
+            std::cout << "  Edge: " << (edge * 100) << "%" << std::endl;
+            
+            if (edge >= minEdge) {
+                ArbitrageOpportunity opp;
+                opp.polymarketId = polymarketId;
+                opp.polymarketSlug = polyMarket->slug ? *polyMarket->slug : "Unknown";
+                opp.oddsId = oddsId;
+                opp.oddsGame = oddsGame->away_team + " vs " + oddsGame->home_team;
+                opp.outcome = polyOutcome.first;
+                opp.polymarketPrice = polyOutcome.second;
+                // For combined outcomes, use the first odds price as representative
+                opp.oddsPrice = oddsOutcomes[oddsIndices[0]].second;
+                opp.edge = edge;
+                opp.impliedProbability = polyProb + combinedOddsProb;
+                opp.recommendedAction = determineRecommendedAction(polyProb, combinedOddsProb);
+                opp.recommendedStake = calculateOptimalStake(edge);
+                
+                opportunities.push_back(opp);
+                
+                std::cout << "  *** ARBITRAGE OPPORTUNITY DETECTED ***" << std::endl;
+                std::cout << "  Market: " << opp.polymarketSlug << std::endl;
+                std::cout << "  Game: " << opp.oddsGame << std::endl;
+                std::cout << "  Recommended Action: " << opp.recommendedAction << std::endl;
+                std::cout << "  Recommended Stake: $" << opp.recommendedStake << std::endl;
+            } else {
+                std::cout << "  Edge too small (min required: " << (minEdge * 100) << "%)" << std::endl;
+            }
+            std::cout << "  ---" << std::endl;
+        }
+        
+        // Also try automatic matching for comparison
+        std::cout << "[ArbitrageFinder] Automatic matching results:" << std::endl;
+        for (const auto& polyOutcome : polyOutcomes) {
+            for (const auto& oddsOutcome : oddsOutcomes) {
+                // Simple text matching for outcomes
+                std::string polyOutcomeLower = polyOutcome.first;
+                std::string oddsOutcomeLower = oddsOutcome.first;
+                std::transform(polyOutcomeLower.begin(), polyOutcomeLower.end(), 
+                              polyOutcomeLower.begin(), ::tolower);
+                std::transform(oddsOutcomeLower.begin(), oddsOutcomeLower.end(), 
+                              oddsOutcomeLower.begin(), ::tolower);
+                
+                // Check if outcomes match (simple contains check)
+                bool outcomesMatch = false;
+                if (polyOutcomeLower.find(oddsOutcomeLower) != std::string::npos ||
+                    oddsOutcomeLower.find(polyOutcomeLower) != std::string::npos) {
+                    outcomesMatch = true;
+                }
+                
+                if (outcomesMatch) {
+                    double polyProb = calculatePolymarketProbability(polyOutcome.second);
+                    double oddsProb = calculateImpliedProbability(oddsOutcome.second);
+                    double edge = calculateEdge(polyProb, oddsProb);
+                    
+                    std::cout << "[ArbitrageFinder] AUTO MATCH FOUND:" << std::endl;
+                    std::cout << "  Polymarket: " << polyOutcome.first << " @ " << polyOutcome.second 
+                              << " (implied prob: " << (polyProb * 100) << "%)" << std::endl;
+                    std::cout << "  Odds: " << oddsOutcome.first << " @ " << oddsOutcome.second 
+                              << " (implied prob: " << (oddsProb * 100) << "%)" << std::endl;
+                    std::cout << "  Edge: " << (edge * 100) << "%" << std::endl;
+                    
+                    if (edge >= minEdge) {
+                        ArbitrageOpportunity opp;
+                        opp.polymarketId = polymarketId;
+                        opp.polymarketSlug = polyMarket->slug ? *polyMarket->slug : "Unknown";
+                        opp.oddsId = oddsId;
+                        opp.oddsGame = oddsGame->away_team + " vs " + oddsGame->home_team;
+                        opp.outcome = polyOutcome.first;
+                        opp.polymarketPrice = polyOutcome.second;
+                        opp.oddsPrice = oddsOutcome.second;
+                        opp.edge = edge;
+                        opp.impliedProbability = polyProb + oddsProb;
+                        opp.recommendedAction = determineRecommendedAction(polyProb, oddsProb);
+                        opp.recommendedStake = calculateOptimalStake(edge);
+                        
+                        opportunities.push_back(opp);
+                        
+                        std::cout << "  *** ARBITRAGE OPPORTUNITY DETECTED ***" << std::endl;
+                        std::cout << "  Market: " << opp.polymarketSlug << std::endl;
+                        std::cout << "  Game: " << opp.oddsGame << std::endl;
+                        std::cout << "  Recommended Action: " << opp.recommendedAction << std::endl;
+                        std::cout << "  Recommended Stake: $" << opp.recommendedStake << std::endl;
+                    } else {
+                        std::cout << "  Edge too small (min required: " << (minEdge * 100) << "%)" << std::endl;
+                    }
+                    std::cout << "  ---" << std::endl;
+                }
+            }
+        }
+    }
+    
+    std::cout << "[ArbitrageFinder] Analysis complete. Found " << opportunities.size() 
+              << " arbitrage opportunities with edge >= " << (minEdge * 100) << "%" << std::endl;
+    
+    return opportunities;
 }

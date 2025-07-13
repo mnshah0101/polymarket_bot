@@ -17,6 +17,21 @@
 #include "config/config_manager.h"
 #include "common/types.h"
 
+// Arbitrage opportunity structure
+struct ArbitrageOpportunity {
+    std::string polymarketId;
+    std::string polymarketSlug;
+    std::string oddsId;
+    std::string oddsGame;
+    std::string outcome;
+    double polymarketPrice;  // Decimal odds from Polymarket
+    double oddsPrice;        // Decimal odds from sportsbook
+    double edge;             // Percentage edge (e.g., 0.05 for 5%)
+    double impliedProbability; // Combined implied probability
+    std::string recommendedAction; // "BUY_POLYMARKET" or "BUY_ODDS"
+    double recommendedStake;  // Recommended stake amount
+};
+
 class MarketMatcher
 {
 private:
@@ -53,6 +68,13 @@ private:
     static double cosineSimilarity(const std::vector<double> &A,
                                    const std::vector<double> &B);
 
+    // Arbitrage calculation helpers
+    static double calculateImpliedProbability(double decimalOdds);
+    static double calculatePolymarketProbability(double polymarketPrice);
+    static double calculateEdge(double prob1, double prob2);
+    static std::string determineRecommendedAction(double polymarketProb, double oddsProb);
+    static double calculateOptimalStake(double edge, double totalStake = 1000.0);
+
 public:
     MarketMatcher(polymarket_bot::api::PolymarketApiClient polyClient,
                   polymarket_bot::api::OddsApiClient oddsClient,
@@ -60,4 +82,7 @@ public:
 
     void loadAll();
     std::vector<std::pair<std::string, std::string>> matchMarkets();
+    
+    // New arbitrage finder method
+    std::vector<ArbitrageOpportunity> findArbitrageOpportunities(double minEdge = 0.03);
 };

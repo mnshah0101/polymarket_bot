@@ -66,9 +66,17 @@ public:
                     config.apis.polymarket.baseUrl = polymarket["baseUrl"];
                     config.apis.polymarket.gammaBaseUrl = polymarket["gammaBaseUrl"];
                     
+                    // Parse dataBaseUrl if present, otherwise use a default
+                    if (polymarket.contains("dataBaseUrl")) {
+                        config.apis.polymarket.dataBaseUrl = polymarket["dataBaseUrl"];
+                    } else {
+                        config.apis.polymarket.dataBaseUrl = "https://data-api.polymarket.com";
+                    }
+                    
                     // Read Polymarket headers from environment variables
                     const char* polyAddress = std::getenv("POLY_ADDRESS");
                     config.apis.polymarket.address = polyAddress ? polyAddress : "";
+                    
                     
                     const char* polySignature = std::getenv("POLY_SIGNATURE");
                     config.apis.polymarket.signature = polySignature ? polySignature : "";
@@ -81,9 +89,13 @@ public:
                     
                     const char* polyPassphrase = std::getenv("POLY_PASSPHRASE");
                     config.apis.polymarket.passphrase = polyPassphrase ? polyPassphrase : "";
+
                     
                     config.apis.polymarket.chainId = polymarket["chainId"];
+
                 }
+
+
             }
 
             // Parse database
@@ -361,6 +373,10 @@ std::string ConfigManager::getPolymarketBaseUrl() const {
 
 std::string ConfigManager::getPolymarketGammaBaseUrl() const {
     return pImpl->config.apis.polymarket.gammaBaseUrl;
+}
+
+std::string ConfigManager::getPolymarketDataBaseUrl() const {
+    return pImpl->config.apis.polymarket.dataBaseUrl;
 }
 
 int ConfigManager::getPolymarketChainId() const {
