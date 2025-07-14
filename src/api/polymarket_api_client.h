@@ -39,6 +39,24 @@ public:
     // Polymarket CLOB API methods
     std::vector<common::PolymarketMarket> getCurrentMarkets();
     common::PolymarketOrderResponse executeOrder(const common::PolymarketOpenOrder& order);
+    
+    // Alternative method for creating orders with individual parameters
+    common::PolymarketOrderResponse createOrder(
+        const std::string& maker,
+        const std::string& signer,
+        const std::string& taker,
+        const std::string& tokenId,
+        const std::string& makerAmount,
+        const std::string& takerAmount,
+        const std::string& expiration,
+        const std::string& nonce,
+        const std::string& feeRateBps,
+        const std::string& side,
+        int signatureType,
+        const std::string& signature,
+        const std::string& owner,
+        const std::string& orderType
+    );
     double getBalance(const std::string& user);
     std::vector<common::PolymarketPosition> getPositions(const std::string& user,
                                                          const std::string& market = "",

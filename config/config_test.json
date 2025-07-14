@@ -20,8 +20,9 @@
     "pinnacle"
   ],
   "sports": [
-  
-    "soccer_fifa_club_world_cup"
+    "basketballNBA",
+    "basketball_nba_summer_league",
+    "basketball_nba_preseason"
   ],
   "kelly": {
     "fractionOfKelly": 0.25,

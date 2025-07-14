@@ -20,9 +20,9 @@
     "pinnacle"
   ],
   "sports": [
-    "americanFootballNFL",
     "basketballNBA",
-    "baseballMLB"
+    "basketball_nba_summer_league",
+    "basketball_nba_preseason"
   ],
   "kelly": {
     "fractionOfKelly": 0.25,

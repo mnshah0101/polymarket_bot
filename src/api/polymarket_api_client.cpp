@@ -106,7 +106,162 @@ std::string PolymarketApiClient::makeGammaRequest(const std::string& endpoint, c
 
 
 polymarket_bot::common::PolymarketOrderResponse PolymarketApiClient::executeOrder(const polymarket_bot::common::PolymarketOpenOrder& order) {
-    return polymarket_bot::common::PolymarketOrderResponse();
+    // Create the order object according to Polymarket CLOB API specification
+    nlohmann::json orderObj;
+    
+    // Generate a random salt for the order (using timestamp + random component)
+    auto now = std::chrono::system_clock::now();
+    auto timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+    int salt = static_cast<int>(timestamp % 1000000); // Use last 6 digits of timestamp
+    
+    // Required fields for the order object as per API specification
+    orderObj["salt"] = salt;
+    orderObj["maker"] = order.maker_address;
+    orderObj["signer"] = order.maker_address; // Assuming signer is same as maker
+    orderObj["taker"] = order.owner; // Using owner as taker
+    orderObj["tokenId"] = order.asset_id;
+    orderObj["makerAmount"] = order.original_size;
+    orderObj["takerAmount"] = order.size_matched;
+    orderObj["expiration"] = order.expiration;
+    orderObj["nonce"] = order.id; // Using order ID as nonce
+    orderObj["feeRateBps"] = "0"; // Default fee rate, adjust as needed
+    orderObj["side"] = order.side;
+    orderObj["signatureType"] = 0; // Default signature type
+    orderObj["signature"] = ""; // This should be provided by the caller or generated
+    
+    // Create the request payload
+    nlohmann::json requestPayload;
+    requestPayload["order"] = orderObj;
+    requestPayload["owner"] = order.owner;
+    requestPayload["orderType"] = order.type;
+    
+    // Make the POST request to /order endpoint
+    std::string endpoint = "/order";
+    std::string response = makeAuthenticatedRequest(endpoint, "POST", requestPayload.dump());
+    
+    // Parse the response
+    PolymarketOrderResponse result;
+    try {
+        nlohmann::json j = nlohmann::json::parse(response);
+        
+        result.success = j.value("success", false);
+        result.errorMsg = j.value("errorMsg", "");
+        result.orderId = j.value("orderId", "");
+        
+        if (j.contains("orderHashes") && j["orderHashes"].is_array()) {
+            for (const auto& hash : j["orderHashes"]) {
+                result.orderHashes.push_back(hash.get<std::string>());
+            }
+        }
+        
+        // Log the response for debugging
+        if (!result.success) {
+            std::cerr << "Order placement failed: " << result.errorMsg << std::endl;
+        } else {
+            std::cout << "Order placed successfully. Order ID: " << result.orderId << std::endl;
+            if (!result.orderHashes.empty()) {
+                std::cout << "Order hashes: ";
+                for (const auto& hash : result.orderHashes) {
+                    std::cout << hash << " ";
+                }
+                std::cout << std::endl;
+            }
+        }
+        
+    } catch (const std::exception& e) {
+        std::cerr << "Error parsing order response: " << e.what() << std::endl;
+        std::cerr << "Response: " << response << std::endl;
+        result.success = false;
+        result.errorMsg = "Failed to parse response: " + std::string(e.what());
+    }
+    
+    return result;
+}
+
+polymarket_bot::common::PolymarketOrderResponse PolymarketApiClient::createOrder(
+    const std::string& maker,
+    const std::string& signer,
+    const std::string& taker,
+    const std::string& tokenId,
+    const std::string& makerAmount,
+    const std::string& takerAmount,
+    const std::string& expiration,
+    const std::string& nonce,
+    const std::string& feeRateBps,
+    const std::string& side,
+    int signatureType,
+    const std::string& signature,
+    const std::string& owner,
+    const std::string& orderType) {
+    
+    // Generate a random salt for the order
+    auto now = std::chrono::system_clock::now();
+    auto timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+    int salt = static_cast<int>(timestamp % 1000000);
+    
+    // Create the order object according to Polymarket CLOB API specification
+    nlohmann::json orderObj;
+    orderObj["salt"] = salt;
+    orderObj["maker"] = maker;
+    orderObj["signer"] = signer;
+    orderObj["taker"] = taker;
+    orderObj["tokenId"] = tokenId;
+    orderObj["makerAmount"] = makerAmount;
+    orderObj["takerAmount"] = takerAmount;
+    orderObj["expiration"] = expiration;
+    orderObj["nonce"] = nonce;
+    orderObj["feeRateBps"] = feeRateBps;
+    orderObj["side"] = side;
+    orderObj["signatureType"] = signatureType;
+    orderObj["signature"] = signature;
+    
+    // Create the request payload
+    nlohmann::json requestPayload;
+    requestPayload["order"] = orderObj;
+    requestPayload["owner"] = owner;
+    requestPayload["orderType"] = orderType;
+    
+    // Make the POST request to /order endpoint
+    std::string endpoint = "/order";
+    std::string response = makeAuthenticatedRequest(endpoint, "POST", requestPayload.dump());
+    
+    // Parse the response
+    PolymarketOrderResponse result;
+    try {
+        nlohmann::json j = nlohmann::json::parse(response);
+        
+        result.success = j.value("success", false);
+        result.errorMsg = j.value("errorMsg", "");
+        result.orderId = j.value("orderId", "");
+        
+        if (j.contains("orderHashes") && j["orderHashes"].is_array()) {
+            for (const auto& hash : j["orderHashes"]) {
+                result.orderHashes.push_back(hash.get<std::string>());
+            }
+        }
+        
+        // Log the response for debugging
+        if (!result.success) {
+            std::cerr << "Order placement failed: " << result.errorMsg << std::endl;
+        } else {
+            std::cout << "Order placed successfully. Order ID: " << result.orderId << std::endl;
+            if (!result.orderHashes.empty()) {
+                std::cout << "Order hashes: ";
+                for (const auto& hash : result.orderHashes) {
+                    std::cout << hash << " ";
+                }
+                std::cout << std::endl;
+            }
+        }
+        
+    } catch (const std::exception& e) {
+        std::cerr << "Error parsing order response: " << e.what() << std::endl;
+        std::cerr << "Response: " << response << std::endl;
+        result.success = false;
+        result.errorMsg = "Failed to parse response: " + std::string(e.what());
+    }
+    
+    return result;
 }
 
 std::string PolymarketApiClient::makeDataRequest(const std::string &endpoint, const std::string &method, const std::string &body)
