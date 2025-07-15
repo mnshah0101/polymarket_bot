@@ -10,6 +10,8 @@
 #include <mutex>
 #include <future>
 #include <queue>
+#include <map>
+#include <unordered_map>
 #include "nlohmann/json.hpp"
 
 #include "api/odds_api_client.h"
@@ -32,6 +34,13 @@ struct ArbitrageOpportunity {
     double recommendedStake;  // Recommended stake amount
 };
 
+// Team mapping structure for slug generation
+struct TeamMapping {
+    std::string oddsTeamName;      // Team name from odds API
+    std::string polymarketCode;    // 3-letter code for Polymarket slug
+    std::string fullName;          // Full team name for reference
+};
+
 class MarketMatcher
 {
 private:
@@ -46,9 +55,15 @@ private:
     std::mutex coutMutex;
     int maxConcurrentRequests;
     
+    // Team mappings for slug generation
+    std::unordered_map<std::string, TeamMapping> nbaTeams;
+    std::unordered_map<std::string, TeamMapping> nhlTeams;
+    std::unordered_map<std::string, TeamMapping> mlbTeams;
+    
     // Date helpers
     static std::string dateOnly(const std::string &iso);
     static int parseDate(const std::string &iso);
+    static std::string formatDateForSlug(const std::string &iso);
     
     // Text normalization
     static std::string normalizeText(const std::string &text);
@@ -75,6 +90,15 @@ private:
     static std::string determineRecommendedAction(double polymarketProb, double oddsProb);
     static double calculateOptimalStake(double edge, double totalStake = 1000.0);
 
+    // New slug-based matching methods
+    void initializeTeamMappings();
+    std::string generateSlugForGame(const polymarket_bot::common::RawOddsGame& game);
+    std::string findPolymarketMarketBySlug(const std::string& slug);
+    std::vector<std::pair<std::string, std::string>> matchMarketsBySlug();
+    
+    // New method to fetch market by slug directly from API
+    std::optional<polymarket_bot::common::GammaMarket> fetchMarketBySlug(const std::string& slug);
+
 public:
     MarketMatcher(polymarket_bot::api::PolymarketApiClient polyClient,
                   polymarket_bot::api::OddsApiClient oddsClient,
@@ -85,4 +109,13 @@ public:
     
     // New arbitrage finder method
     std::vector<ArbitrageOpportunity> findArbitrageOpportunities(double minEdge = 0.03);
+    
+    // Public access to slug-based matching for testing
+    std::vector<std::pair<std::string, std::string>> testMatchMarketsBySlug() { return matchMarketsBySlug(); }
+    
+    // Public access to slug generation for testing
+    std::string testGenerateSlugForGame(const polymarket_bot::common::RawOddsGame& game) { return generateSlugForGame(game); }
+    
+    // Getter for odds games
+    const std::vector<polymarket_bot::common::RawOddsGame>& getOddsGames() const { return oddsGames; }
 };

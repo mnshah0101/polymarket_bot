@@ -32,6 +32,9 @@ int main(int argc, char* argv[]) {
         if (!std::getenv("POLY_PASSPHRASE")) {
             std::cout << "Warning: POLY_PASSPHRASE not set. Using test configuration." << std::endl;
         }
+        if (!std::getenv("BANKROLL")) {
+            std::cout << "Warning: BANKROLL not set. Using default bankroll of $10,000." << std::endl;
+        }
         
         // Initialize the config manager
         auto& configManager = polymarket_bot::config::ConfigManager::getInstance();
@@ -110,46 +113,103 @@ int main(int argc, char* argv[]) {
 
         std::cout << "Polymarket API client initialized successfully" << std::endl;
 
-        double balance = polyClient.getBalance(std::getenv("POLYMARKET_ADDRESS"));
-        std::cout << "Balance: " << balance << std::endl;
-
-        // Test getPositions functionality
-        std::cout << "\n=== Testing getPositions ===" << std::endl;
-        const char* userAddress = std::getenv("POLYMARKET_ADDRESS");
-        if (userAddress) {
-            try {
-                auto positions = polyClient.getPositions(userAddress, "", 1.0, false, false, "", "", 10, 0, "TOKENS", "DESC");
-                std::cout << "Retrieved " << positions.size() << " positions" << std::endl;
-                
-                for (size_t i = 0; i < std::min(positions.size(), size_t(3)); ++i) {
-                    const auto& pos = positions[i];
-                    std::cout << "Position " << (i+1) << ": " << pos.title 
-                              << " (Size: " << pos.size << ", PnL: " << pos.cashPnl << ")" << std::endl;
+        // Test Polymarket API
+        std::cout << "\n=== Testing Polymarket API ===" << std::endl;
+        try {
+            auto gammaMarkets = polyClient.getGammaMarkets(1, 20);
+            std::cout << "Retrieved " << gammaMarkets.markets.size() << " gamma markets" << std::endl;
+            
+            // Print first few markets with their slugs
+            for (size_t i = 0; i < std::min(gammaMarkets.markets.size(), size_t(10)); ++i) {
+                const auto& market = gammaMarkets.markets[i];
+                std::cout << "Market " << (i+1) << ":" << std::endl;
+                if (market.slug) {
+                    std::cout << "  Slug: " << *market.slug << std::endl;
                 }
-            } catch (const std::exception& e) {
-                std::cerr << "Error getting positions: " << e.what() << std::endl;
+                if (market.question) {
+                    std::cout << "  Question: " << *market.question << std::endl;
+                }
+                if (market.endDateIso) {
+                    std::cout << "  End Date: " << *market.endDateIso << std::endl;
+                }
+                std::cout << std::endl;
             }
-        } else {
-            std::cout << "POLYMARKET_ADDRESS not set, skipping positions test" << std::endl;
+        } catch (const std::exception& e) {
+            std::cout << "Error fetching Polymarket data: " << e.what() << std::endl;
         }
 
-         // Test MarketMatcher
-        std::cout << "\n=== Testing MarketMatcher ===" << std::endl;
+        // Test MarketMatcher with new slug-based approach
+        std::cout << "\n=== Testing MarketMatcher (Slug-Based) ===" << std::endl;
         
         MarketMatcher matcher(polyClient, client, configManager);
         std::cout << "MarketMatcher created successfully" << std::endl;
         
-        // Load all data
+        // Load odds data only
+        std::cout << "Loading odds data..." << std::endl;
         matcher.loadAll();
         
-     
-        // Test arbitrage finder
-        std::cout << "\n=== Testing Arbitrage Finder ===" << std::endl;
-        auto arbitrageOpportunities = matcher.findArbitrageOpportunities(0.03); // 3% minimum edge
-        std::cout << "Found " << arbitrageOpportunities.size() << " arbitrage opportunities with >= 3% edge" << std::endl;
+        // Debug: Show what games we actually got from the odds API
+        std::cout << "\n=== Debug: Odds API Results ===" << std::endl;
+        auto oddsGames = matcher.getOddsGames(); // We'll need to add this method
+        std::cout << "Total games from odds API: " << oddsGames.size() << std::endl;
         
-        // Display top opportunities
-        for (size_t i = 0; i < std::min(arbitrageOpportunities.size(), size_t(5)); ++i) {
+        for (size_t i = 0; i < std::min(oddsGames.size(), size_t(5)); ++i) {
+            const auto& game = oddsGames[i];
+            std::cout << "Game " << (i+1) << ":" << std::endl;
+            std::cout << "  Sport Key: '" << game.sport_key << "'" << std::endl;
+            std::cout << "  Away Team: '" << game.away_team << "'" << std::endl;
+            std::cout << "  Home Team: '" << game.home_team << "'" << std::endl;
+            std::cout << "  Commence Time: " << game.commence_time << std::endl;
+            std::cout << std::endl;
+        }
+        
+        // Test slug-based matching (fetches Polymarket markets individually)
+        std::cout << "\n=== Testing Slug-Based Matching ===" << std::endl;
+        std::cout << "This will generate slugs for each game and fetch corresponding Polymarket markets..." << std::endl;
+        auto matchedMarkets = matcher.testMatchMarketsBySlug();
+        std::cout << "Found " << matchedMarkets.size() << " matched markets using slug-based matching" << std::endl;
+        
+        // Test slug generation with sample data
+        std::cout << "\n=== Testing Slug Generation ===" << std::endl;
+        std::cout << "Demonstrating slug generation with sample data:" << std::endl;
+        
+        // Create sample games to test slug generation
+        std::vector<polymarket_bot::common::RawOddsGame> sampleGames = {
+            {"game1", "basketball_nba", "2025-01-15T19:30:00Z", "Phoenix Suns", "Sacramento Kings", {}},
+            {"game2", "icehockey_nhl", "2025-01-16T20:00:00Z", "Boston Bruins", "Toronto Maple Leafs", {}},
+            {"game3", "baseball_mlb", "2025-04-15T19:05:00Z", "New York Yankees", "Boston Red Sox", {}}
+        };
+        
+        for (const auto& game : sampleGames) {
+            std::string slug = matcher.testGenerateSlugForGame(game);
+            std::cout << "Game: " << game.away_team << " vs " << game.home_team << std::endl;
+            std::cout << "Generated slug: " << slug << std::endl;
+            std::cout << "Would call: https://gamma-api.polymarket.com/markets?slug=" << slug << std::endl;
+            std::cout << std::endl;
+        }
+        
+        // Display matches
+        for (size_t i = 0; i < std::min(matchedMarkets.size(), size_t(5)); ++i) {
+            const auto& match = matchedMarkets[i];
+            std::cout << "Match " << (i+1) << ":" << std::endl;
+            std::cout << "  Polymarket ID: " << match.first << std::endl;
+            std::cout << "  Odds ID: " << match.second << std::endl;
+            std::cout << std::endl;
+        }
+        
+        // Test arbitrage finder with all opportunities
+        std::cout << "\n=== Testing Arbitrage Finder ===" << std::endl;
+        std::cout << "Analyzing all matched markets for arbitrage opportunities..." << std::endl;
+        auto arbitrageOpportunities = matcher.findArbitrageOpportunities(0.0); // 0% minimum edge to show all
+        std::cout << "Found " << arbitrageOpportunities.size() << " arbitrage opportunities (all edges)" << std::endl;
+        
+        // Display all opportunities sorted by edge
+        std::sort(arbitrageOpportunities.begin(), arbitrageOpportunities.end(), 
+                  [](const ArbitrageOpportunity& a, const ArbitrageOpportunity& b) {
+                      return a.edge > b.edge;
+                  });
+        
+        for (size_t i = 0; i < arbitrageOpportunities.size(); ++i) {
             const auto& opp = arbitrageOpportunities[i];
             std::cout << "\nOpportunity " << (i+1) << ":" << std::endl;
             std::cout << "  Market: " << opp.polymarketSlug << std::endl;
@@ -161,12 +221,6 @@ int main(int argc, char* argv[]) {
             std::cout << "  Recommended Action: " << opp.recommendedAction << std::endl;
             std::cout << "  Recommended Stake: $" << opp.recommendedStake << std::endl;
         }
-        
-        // For now, just demonstrate that everything is working
-        // In a real implementation, you would start the main loop here
-
-        // Get balance
-        
         
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
