@@ -590,26 +590,41 @@ double MarketMatcher::calculateImpliedProbability(double decimalOdds) {
 
 double MarketMatcher::calculatePolymarketProbability(double polymarketPrice) {
     // Polymarket prices are already in probability format (0.615 = 61.5%)
+    // Ensure valid probability range
+    if (polymarketPrice <= 0.0 || polymarketPrice >= 1.0) return 0.0;
     return polymarketPrice;
 }
 
-double MarketMatcher::calculateEdge(double prob1, double prob2) {
-    if (prob1 <= 0.0 || prob2 <= 0.0) return 0.0;
-    return std::abs(prob1 - prob2) / std::min(prob1, prob2);
+double MarketMatcher::calculateEdge(double polymarketProb, double oddsProb) {
+    if (polymarketProb <= 0.0 || polymarketProb >= 1.0 || oddsProb <= 0.0 || oddsProb >= 1.0) {
+        return 0.0;
+    }
+    
+    // Calculate edge for Polymarket-only trading
+    // Edge = sportsbook_implied_prob - polymarket_price
+    // If positive, Polymarket is undervaluing (good buy opportunity)
+    // If negative, Polymarket is overvaluing (avoid)
+    double edge = oddsProb - polymarketProb;
+    
+    // Only return positive edges (Polymarket undervaluing)
+    return std::max(0.0, edge);
 }
 
 std::string MarketMatcher::determineRecommendedAction(double polymarketProb, double oddsProb) {
-    if (polymarketProb > oddsProb) {
-        return "BUY_POLYMARKET";  // Polymarket odds are higher, so buy there
+    // Only trade on Polymarket - look for value betting opportunities
+    if (polymarketProb < oddsProb) {
+        return "BUY_POLYMARKET_YES";  // Polymarket underpriced compared to sportsbook
+    } else if (polymarketProb > oddsProb) {
+        return "BUY_POLYMARKET_NO";   // Polymarket overpriced, bet against (buy No)
     } else {
-        return "BUY_ODDS";        // Sportsbook odds are higher, so buy there
+        return "NO_TRADE";           // No clear edge
     }
 }
 
 double MarketMatcher::calculateOptimalStake(double edge, double totalStake) {
     // Get bankroll from environment variable
     const char* bankrollEnv = std::getenv("BANKROLL");
-    double bankroll = 10000.0; // Default bankroll if not set
+    double bankroll = 1000; // Default bankroll if not set
     
     if (bankrollEnv) {
         try {
@@ -621,57 +636,60 @@ double MarketMatcher::calculateOptimalStake(double edge, double totalStake) {
         std::cout << "[MarketMatcher] Warning: BANKROLL environment variable not set, using default: " << bankroll << std::endl;
     }
     
-    // Kelly Criterion: f = (bp - q) / b
-    // where:
-    // f = fraction of bankroll to bet
-    // b = net odds received on the bet (decimal odds - 1)
-    // p = probability of winning
-    // q = probability of losing (1 - p)
-    
-    // For arbitrage, we need to calculate Kelly for both sides
-    // We'll use the edge to determine the optimal fraction
-    
     if (edge <= 0.0) {
         return 0.0; // No edge, no bet
     }
     
-    // Conservative Kelly: use a fraction of the full Kelly to reduce risk
-    // Common practice is to use 1/4 to 1/2 of full Kelly
-    const double kellyFraction = 0.25; // 25% of full Kelly
+    // For true arbitrage opportunities (edge > 0), calculate proper Kelly
+    // For value betting opportunities, use conservative Kelly
     
-    // Calculate Kelly fraction based on edge
-    // For arbitrage, the edge represents the opportunity
-    double kellyFractionOfBankroll = edge * kellyFraction;
+    double kellyFraction;
+    if (edge > 0.01) { // True arbitrage (1%+ guaranteed profit)
+        // For arbitrage, the Kelly fraction is the edge itself
+        // since we can guarantee profit by betting on both sides
+        kellyFraction = edge;
+        
+        // Cap at 10% of bankroll for safety
+        kellyFraction = std::min(kellyFraction, 0.10);
+    } else {
+        // Value betting: use fractional Kelly for safety
+        // Kelly = (bp - q) / b, but simplified for value betting
+        const double conservativeKelly = 0.25; // 25% of full Kelly
+        kellyFraction = edge * conservativeKelly;
+        
+        // Cap at 2% of bankroll for value bets
+        kellyFraction = std::min(kellyFraction, 0.02);
+    }
     
-    // Cap the maximum bet at 5% of bankroll for risk management
-    const double maxBetFraction = 0.05;
-    kellyFractionOfBankroll = std::min(kellyFractionOfBankroll, maxBetFraction);
+    double recommendedStake = bankroll * kellyFraction;
     
-    double recommendedStake = bankroll * kellyFractionOfBankroll;
+    // Set reasonable minimum and maximum bounds
+    const double minStake = bankroll * 0.001; // 0.1% of bankroll minimum
+    const double maxStake = bankroll * 0.10;  // 10% of bankroll maximum
     
-    // Ensure minimum stake of $10
-    recommendedStake = std::max(recommendedStake, 10.0);
+    recommendedStake = std::max(recommendedStake, minStake);
+    recommendedStake = std::min(recommendedStake, maxStake);
     
     std::cout << "[MarketMatcher] Kelly calculation:" << std::endl;
     std::cout << "  Bankroll: $" << bankroll << std::endl;
     std::cout << "  Edge: " << (edge * 100) << "%" << std::endl;
-    std::cout << "  Kelly fraction: " << (kellyFractionOfBankroll * 100) << "%" << std::endl;
+    std::cout << "  Kelly fraction: " << (kellyFraction * 100) << "%" << std::endl;
     std::cout << "  Recommended stake: $" << recommendedStake << std::endl;
     
     return recommendedStake;
 }
 
 std::vector<ArbitrageOpportunity> MarketMatcher::findArbitrageOpportunities(double minEdge) {
-    std::cout << "[ArbitrageFinder] Starting arbitrage analysis..." << std::endl;
+    std::cout << "[TradingFinder] Starting Polymarket trading opportunity analysis..." << std::endl;
     
     std::vector<ArbitrageOpportunity> opportunities;
     
     // Get matched markets using slug-based matching
     auto matchedMarkets = matchMarketsBySlug();
-    std::cout << "[ArbitrageFinder] Found " << matchedMarkets.size() << " matched markets" << std::endl;
+    std::cout << "[TradingFinder] Found " << matchedMarkets.size() << " matched markets" << std::endl;
     
     if (matchedMarkets.empty()) {
-        std::cout << "[ArbitrageFinder] No matched markets found. Cannot analyze arbitrage." << std::endl;
+        std::cout << "[TradingFinder] No matched markets found. Cannot analyze trading opportunities." << std::endl;
         return opportunities;
     }
     
@@ -689,7 +707,7 @@ std::vector<ArbitrageOpportunity> MarketMatcher::findArbitrageOpportunities(doub
         }
         
         if (!oddsGame) {
-            std::cout << "[ArbitrageFinder] Warning: Could not find odds game for ID: " << oddsId << std::endl;
+            std::cout << "[TradingFinder] Warning: Could not find odds game for ID: " << oddsId << std::endl;
             continue;
         }
         
@@ -698,11 +716,11 @@ std::vector<ArbitrageOpportunity> MarketMatcher::findArbitrageOpportunities(doub
         auto polymarketMarket = fetchMarketBySlug(slug);
         
         if (!polymarketMarket.has_value()) {
-            std::cout << "[ArbitrageFinder] Warning: Could not fetch Polymarket market for slug: " << slug << std::endl;
+            std::cout << "[TradingFinder] Warning: Could not fetch Polymarket market for slug: " << slug << std::endl;
             continue;
         }
         
-        std::cout << "\n[ArbitrageFinder] Analyzing: " << oddsGame->away_team << " vs " << oddsGame->home_team << std::endl;
+        std::cout << "\n[TradingFinder] Analyzing: " << oddsGame->away_team << " vs " << oddsGame->home_team << std::endl;
         std::cout << "Polymarket Market ID: " << (polymarketMarket->id ? *polymarketMarket->id : "unknown") << std::endl;
         
         // Parse Polymarket outcomes and prices
@@ -727,7 +745,7 @@ std::vector<ArbitrageOpportunity> MarketMatcher::findArbitrageOpportunities(doub
                     }
                 }
             } catch (const std::exception& e) {
-                std::cout << "[ArbitrageFinder] Error parsing Polymarket data: " << e.what() << std::endl;
+                std::cout << "[TradingFinder] Error parsing Polymarket data: " << e.what() << std::endl;
             }
         }
         
@@ -759,7 +777,7 @@ std::vector<ArbitrageOpportunity> MarketMatcher::findArbitrageOpportunities(doub
                         for (const auto& outcome : market.outcomes) {
                             oddsOutcomes.emplace_back(outcome.name, outcome.price);
                         }
-                        std::cout << "[ArbitrageFinder] Using " << bookmaker.key 
+                        std::cout << "[TradingFinder] Using " << bookmaker.key 
                                   << " odds (Pinnacle not available)" << std::endl;
                         break;
                     }
@@ -767,15 +785,15 @@ std::vector<ArbitrageOpportunity> MarketMatcher::findArbitrageOpportunities(doub
                 if (!oddsOutcomes.empty()) break;
             }
         } else {
-            std::cout << "[ArbitrageFinder] Using Pinnacle odds" << std::endl;
+            std::cout << "[TradingFinder] Using Pinnacle odds" << std::endl;
         }
         
         if (oddsOutcomes.empty()) {
-            std::cout << "[ArbitrageFinder] Warning: No odds outcomes found" << std::endl;
+            std::cout << "[TradingFinder] Warning: No odds outcomes found" << std::endl;
             continue;
         }
         
-        std::cout << "[ArbitrageFinder] Found " << polyOutcomes.size() << " Polymarket outcomes and " 
+        std::cout << "[TradingFinder] Found " << polyOutcomes.size() << " Polymarket outcomes and " 
                   << oddsOutcomes.size() << " Odds outcomes" << std::endl;
         
         // Simple outcome matching based on team names
@@ -814,14 +832,14 @@ std::vector<ArbitrageOpportunity> MarketMatcher::findArbitrageOpportunities(doub
                     double oddsProb = calculateImpliedProbability(oddsOutcome.second);
                     double edge = calculateEdge(polyProb, oddsProb);
                     
-                    std::cout << "[ArbitrageFinder] MATCH FOUND:" << std::endl;
+                    std::cout << "[TradingFinder] MATCH FOUND:" << std::endl;
                     std::cout << "  Polymarket: " << polyOutcome.first << " @ " << polyOutcome.second 
                               << " (implied prob: " << (polyProb * 100) << "%)" << std::endl;
                     std::cout << "  Odds: " << oddsOutcome.first << " @ " << oddsOutcome.second 
                               << " (implied prob: " << (oddsProb * 100) << "%)" << std::endl;
                     std::cout << "  Edge: " << (edge * 100) << "%" << std::endl;
                     
-                    // Create arbitrage opportunity (regardless of edge)
+                    // Create trading opportunity
                     ArbitrageOpportunity opp;
                     opp.polymarketId = polymarketMarket->id ? *polymarketMarket->id : "";
                     opp.polymarketSlug = slug;
@@ -835,16 +853,24 @@ std::vector<ArbitrageOpportunity> MarketMatcher::findArbitrageOpportunities(doub
                     opp.recommendedAction = determineRecommendedAction(polyProb, oddsProb);
                     opp.recommendedStake = calculateOptimalStake(edge);
                     
-                    opportunities.push_back(opp);
+                    // Only add opportunities that involve Polymarket trading
+                    if (opp.recommendedAction != "NO_TRADE") {
+                        opportunities.push_back(opp);
+                    }
                     
-                    if (edge >= minEdge) {
-                        std::cout << "  *** ARBITRAGE OPPORTUNITY DETECTED ***" << std::endl;
-                        std::cout << "  Market: " << opp.polymarketSlug << std::endl;
-                        std::cout << "  Game: " << opp.oddsGame << std::endl;
-                        std::cout << "  Recommended Action: " << opp.recommendedAction << std::endl;
-                        std::cout << "  Recommended Stake: $" << opp.recommendedStake << std::endl;
+                    // Only include opportunities that involve Polymarket trading
+                    if (opp.recommendedAction != "NO_TRADE") {
+                        if (edge >= minEdge) {
+                            std::cout << "  *** POLYMARKET TRADING OPPORTUNITY DETECTED ***" << std::endl;
+                            std::cout << "  Market: " << opp.polymarketSlug << std::endl;
+                            std::cout << "  Game: " << opp.oddsGame << std::endl;
+                            std::cout << "  Recommended Action: " << opp.recommendedAction << std::endl;
+                            std::cout << "  Recommended Stake: $" << opp.recommendedStake << std::endl;
+                        } else {
+                            std::cout << "  Edge too small (min required: " << (minEdge * 100) << "%)" << std::endl;
+                        }
                     } else {
-                        std::cout << "  Edge too small (min required: " << (minEdge * 100) << "%)" << std::endl;
+                        std::cout << "  No clear trading edge - skipping" << std::endl;
                     }
                     std::cout << std::endl;
                 }
@@ -852,8 +878,8 @@ std::vector<ArbitrageOpportunity> MarketMatcher::findArbitrageOpportunities(doub
         }
     }
     
-    std::cout << "[ArbitrageFinder] Analysis complete. Found " << opportunities.size() 
-              << " arbitrage opportunities (all edges listed)" << std::endl;
+    std::cout << "[TradingFinder] Analysis complete. Found " << opportunities.size() 
+              << " trading opportunities (Polymarket-only)" << std::endl;
     
     return opportunities;
 }

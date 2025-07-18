@@ -19,7 +19,7 @@
 #include "config/config_manager.h"
 #include "common/types.h"
 
-// Arbitrage opportunity structure
+// Trading opportunity structure
 struct ArbitrageOpportunity {
     std::string polymarketId;
     std::string polymarketSlug;
@@ -30,7 +30,7 @@ struct ArbitrageOpportunity {
     double oddsPrice;        // Decimal odds from sportsbook
     double edge;             // Percentage edge (e.g., 0.05 for 5%)
     double impliedProbability; // Combined implied probability
-    std::string recommendedAction; // "BUY_POLYMARKET" or "BUY_ODDS"
+    std::string recommendedAction; // "BUY_POLYMARKET_YES", "BUY_POLYMARKET_NO", or "NO_TRADE"
     double recommendedStake;  // Recommended stake amount
 };
 
@@ -107,7 +107,7 @@ public:
     void loadAll();
     std::vector<std::pair<std::string, std::string>> matchMarkets();
     
-    // New arbitrage finder method
+    // Find Polymarket trading opportunities (value betting)
     std::vector<ArbitrageOpportunity> findArbitrageOpportunities(double minEdge = 0.03);
     
     // Public access to slug-based matching for testing

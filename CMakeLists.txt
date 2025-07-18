@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 project(polymarket_bot VERSION 1.0.0 LANGUAGES CXX)
 
 # Set C++ standard
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 
@@ -65,6 +65,9 @@ endif()
 # cURL for HTTP requests
 find_package(CURL REQUIRED)
 
+# OpenSSL
+find_package(OpenSSL REQUIRED)
+
 # Threading
 find_package(Threads REQUIRED)
 
@@ -78,21 +81,35 @@ file(GLOB_RECURSE LIBRARY_SOURCES
     "src/*.h"
 )
 
-# Remove main.cpp from library sources
+# Remove main.cpp files from library sources
 list(REMOVE_ITEM LIBRARY_SOURCES "${CMAKE_SOURCE_DIR}/src/main.cpp")
+list(REMOVE_ITEM LIBRARY_SOURCES "${CMAKE_SOURCE_DIR}/src/main_trading.cpp")
 
 # Create library
 add_library(polymarket_bot_lib STATIC ${LIBRARY_SOURCES})
 
-# Create main executable
+# Create main executables
 add_executable(polymarket_bot src/main.cpp)
+add_executable(polymarket_trading_bot src/main_trading.cpp)
 
-# Link libraries for the main executable
+# Link libraries for the main executables
 target_link_libraries(polymarket_bot
     polymarket_bot_lib
     nlohmann_json::nlohmann_json
     SQLite3
     CURL::libcurl
+    OpenSSL::SSL
+    OpenSSL::Crypto
+    Threads::Threads
+)
+
+target_link_libraries(polymarket_trading_bot
+    polymarket_bot_lib
+    nlohmann_json::nlohmann_json
+    SQLite3
+    CURL::libcurl
+    OpenSSL::SSL
+    OpenSSL::Crypto
     Threads::Threads
 )
 
@@ -101,19 +118,27 @@ target_link_libraries(polymarket_bot_lib
     nlohmann_json::nlohmann_json
     SQLite3
     CURL::libcurl
+    OpenSSL::SSL
+    OpenSSL::Crypto
     Threads::Threads
 )
 
 # Set output directories
-set_target_properties(polymarket_bot PROPERTIES
+set_target_properties(polymarket_bot polymarket_trading_bot PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
     ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib
 )
 
-# Copy config files to build directory
+# Copy config and sql files to build directory
 file(COPY ${CMAKE_SOURCE_DIR}/config DESTINATION ${CMAKE_BINARY_DIR}/bin)
 file(COPY ${CMAKE_SOURCE_DIR}/config DESTINATION ${CMAKE_BINARY_DIR})
+file(COPY ${CMAKE_SOURCE_DIR}/sql DESTINATION ${CMAKE_BINARY_DIR}/bin)
+file(COPY ${CMAKE_SOURCE_DIR}/sql DESTINATION ${CMAKE_BINARY_DIR})
+
+# Create data directory for database
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/bin/data)
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/data)
 
 # Environment Variables
 # The application expects these environment variables to be set in the system:
@@ -125,7 +150,7 @@ file(COPY ${CMAKE_SOURCE_DIR}/config DESTINATION ${CMAKE_BINARY_DIR})
 # - POLY_PASSPHRASE: Your Polymarket passphrase
 
 # Install rules
-install(TARGETS polymarket_bot
+install(TARGETS polymarket_bot polymarket_trading_bot
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib

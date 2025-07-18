@@ -37,16 +37,30 @@ std::string PolymarketApiClient::makeAuthenticatedRequest(const std::string& end
     CURL* curl = curl_easy_init();
     std::string response;
 
+    std::cout << "[PolymarketApiClient] HTTP Request Details:" << std::endl;
+    std::cout << "[PolymarketApiClient]   Method: " << method << std::endl;
+    std::cout << "[PolymarketApiClient]   Endpoint: " << endpoint << std::endl;
+    std::cout << "[PolymarketApiClient]   Base URL: " << baseUrl << std::endl;
+
     if (curl) {
         std::string url = baseUrl + endpoint;
+        std::cout << "[PolymarketApiClient]   Full URL: " << url << std::endl;
         
         struct curl_slist* headers = NULL;
         headers = curl_slist_append(headers, "Content-Type: application/json");
+        headers = curl_slist_append(headers, "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36");
         headers = curl_slist_append(headers, ("X-POLYMARKET-ADDRESS: " + address).c_str());
         headers = curl_slist_append(headers, ("X-POLYMARKET-SIGNATURE: " + signature).c_str());
         headers = curl_slist_append(headers, ("X-POLYMARKET-TIMESTAMP: " + timestamp).c_str());
         headers = curl_slist_append(headers, ("X-POLYMARKET-API-KEY: " + apiKey).c_str());
         headers = curl_slist_append(headers, ("X-POLYMARKET-PASSPHRASE: " + passphrase).c_str());
+        
+        std::cout << "[PolymarketApiClient] API Credentials Being Used:" << std::endl;
+        std::cout << "[PolymarketApiClient]   Address: " << address << std::endl;
+        std::cout << "[PolymarketApiClient]   API Key: " << apiKey << std::endl;
+        std::cout << "[PolymarketApiClient]   Passphrase: " << passphrase << std::endl;
+        std::cout << "[PolymarketApiClient]   Timestamp: " << timestamp << std::endl;
+        std::cout << "[PolymarketApiClient]   Signature (first 20 chars): " << signature.substr(0, 20) << "..." << std::endl;
 
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
@@ -55,12 +69,21 @@ std::string PolymarketApiClient::makeAuthenticatedRequest(const std::string& end
         curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, method.c_str());
         
         if (!body.empty()) {
+            std::cout << "[PolymarketApiClient]   Body length: " << body.length() << " characters" << std::endl;
             curl_easy_setopt(curl, CURLOPT_POSTFIELDS, body.c_str());
         }
 
+        std::cout << "[PolymarketApiClient] Executing HTTP request..." << std::endl;
         CURLcode res = curl_easy_perform(curl);
+        
+        long response_code;
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
+        std::cout << "[PolymarketApiClient] HTTP Response Code: " << response_code << std::endl;
+        
         if (res != CURLE_OK) {
-            std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
+            std::cout << "[PolymarketApiClient] CURL ERROR: " << curl_easy_strerror(res) << std::endl;
+        } else {
+            std::cout << "[PolymarketApiClient] HTTP request completed successfully" << std::endl;
         }
 
         curl_slist_free_all(headers);
@@ -137,7 +160,13 @@ polymarket_bot::common::PolymarketOrderResponse PolymarketApiClient::executeOrde
     
     // Make the POST request to /order endpoint
     std::string endpoint = "/order";
+    std::cout << "[PolymarketApiClient] Making POST request to " << endpoint << std::endl;
+    std::cout << "[PolymarketApiClient] Request payload: " << requestPayload.dump(2) << std::endl;
+    
     std::string response = makeAuthenticatedRequest(endpoint, "POST", requestPayload.dump());
+    
+    std::cout << "[PolymarketApiClient] Received response length: " << response.length() << " characters" << std::endl;
+    std::cout << "[PolymarketApiClient] Response preview (first 200 chars): " << response.substr(0, 200) << std::endl;
     
     // Parse the response
     PolymarketOrderResponse result;
