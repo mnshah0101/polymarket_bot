@@ -14,7 +14,6 @@ services:
       # Required: Set your API keys as environment variables
       # - ODDS_API_KEY=${ODDS_API_KEY}
       # - POLY_ADDRESS=${POLY_ADDRESS}
-      # - POLY_SIGNATURE=${POLY_SIGNATURE}
       # - POLY_TIMESTAMP=${POLY_TIMESTAMP}
       # - POLY_API_KEY=${POLY_API_KEY}
       # - POLY_PASSPHRASE=${POLY_PASSPHRASE}

@@ -164,20 +164,18 @@ TradeResult TradeExecutor::executeTrade(const TradeRequest& request) {
         }
         std::cout << "[TradeExecutor] Daily limits check passed" << std::endl;
         
-        // Create the Polymarket order
-        std::cout << "[TradeExecutor] Creating Polymarket order..." << std::endl;
-        auto orderOpt = createPolymarketOrder(request);
-        if (!orderOpt) {
-            std::cout << "[TradeExecutor] ERROR: Failed to create Polymarket order" << std::endl;
-            result.errorMessage = "Failed to create Polymarket order";
-            result.status = "FAILED";
-            return result;
-        }
-        std::cout << "[TradeExecutor] Polymarket order created successfully" << std::endl;
+        // Execute order via Lambda
+        std::cout << "[TradeExecutor] Executing order via Lambda..." << std::endl;
+        std::string side = (request.recommendedAction == "BUY_POLYMARKET") ? "BUY" : "SELL";
+        double price = (side == "BUY") ? request.polymarketPrice : (1.0 - request.polymarketPrice);
         
-        // Execute the order on Polymarket
-        std::cout << "[TradeExecutor] Executing order on Polymarket..." << std::endl;
-        auto orderResponse = polyClient->executeOrder(orderOpt.value());
+        auto orderResponse = polyClient->executeLambdaOrder(
+            request.polymarketSlug, 
+            price, 
+            request.stakeAmount, 
+            request.outcome, 
+            side
+        );
         
         if (orderResponse.success) {
             result.success = true;

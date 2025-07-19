@@ -77,7 +77,6 @@ public:
                     const char* polyAddress = std::getenv("POLY_ADDRESS");
                     config.apis.polymarket.address = polyAddress ? polyAddress : "";
                     
-                    
                     const char* polySignature = std::getenv("POLY_SIGNATURE");
                     config.apis.polymarket.signature = polySignature ? polySignature : "";
                     

@@ -20,9 +20,6 @@ int main(int argc, char* argv[]) {
         if (!std::getenv("POLY_ADDRESS")) {
             std::cout << "Warning: POLY_ADDRESS not set. Using test configuration." << std::endl;
         }
-        if (!std::getenv("POLY_SIGNATURE")) {
-            std::cout << "Warning: POLY_SIGNATURE not set. Using test configuration." << std::endl;
-        }
         if (!std::getenv("POLY_TIMESTAMP")) {
             std::cout << "Warning: POLY_TIMESTAMP not set. Using test configuration." << std::endl;
         }

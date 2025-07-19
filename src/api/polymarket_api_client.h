@@ -84,6 +84,13 @@ public:
     // Gamma Markets API methods
     common::GammaMarketsResponse getGammaMarkets(int page = 1, int limit = 20);
     common::GammaMarket getGammaMarket(const std::string& marketId);
+    
+    // CLOB API methods
+    common::ClobMarket getClobMarket(const std::string& conditionId);
+    std::string getConditionIdFromSlug(const std::string& slug);
+    
+    // Lambda order execution
+    common::PolymarketOrderResponse executeLambdaOrder(const std::string& slug, double price, double size, const std::string& outcome, const std::string& side, const std::string& orderType = "GTC");
 };
 
 } // namespace api

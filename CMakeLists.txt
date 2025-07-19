@@ -144,7 +144,6 @@ file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/data)
 # The application expects these environment variables to be set in the system:
 # - ODDS_API_KEY: Your odds API key
 # - POLY_ADDRESS: Your Polygon address
-# - POLY_SIGNATURE: Your HMAC signature
 # - POLY_TIMESTAMP: Current UNIX timestamp
 # - POLY_API_KEY: Your Polymarket API key
 # - POLY_PASSPHRASE: Your Polymarket passphrase

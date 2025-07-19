@@ -155,9 +155,9 @@ polymarket_bot::common::PolymarketOrderResponse PolymarketApiClient::executeOrde
     // Create the request payload
     nlohmann::json requestPayload;
     requestPayload["order"] = orderObj;
-    requestPayload["owner"] = order.owner;
-    requestPayload["orderType"] = order.type;
-    
+    requestPayload["owner"] = apiKey; // Using API key as owner for this examplec
+        requestPayload["orderType"] = order.type;
+
     // Make the POST request to /order endpoint
     std::string endpoint = "/order";
     std::cout << "[PolymarketApiClient] Making POST request to " << endpoint << std::endl;
@@ -500,4 +500,66 @@ polymarket_bot::common::GammaMarket PolymarketApiClient::getGammaMarket(const st
     }
     
     return market;
+}
+
+// Lambda order execution
+polymarket_bot::common::PolymarketOrderResponse PolymarketApiClient::executeLambdaOrder(const std::string& slug, double price, double size, const std::string& outcome, const std::string& side, const std::string& orderType) {
+    CURL* curl = curl_easy_init();
+    std::string response;
+    polymarket_bot::common::PolymarketOrderResponse result;
+
+    if (curl) {
+        std::string url = "https://s7raz3kdkgbqtk5eej6hzsbogq0vjvrh.lambda-url.ca-central-1.on.aws/";
+        
+        // Create request payload
+        nlohmann::json payload;
+        payload["slug"] = slug;
+        payload["price"] = price;
+        payload["size"] = size;
+        payload["outcome"] = outcome;
+        payload["side"] = side;
+        payload["order_type"] = orderType;
+        
+        std::string jsonPayload = payload.dump();
+        
+        struct curl_slist* headers = NULL;
+        headers = curl_slist_append(headers, "Content-Type: application/json");
+        
+        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, jsonPayload.c_str());
+        
+        CURLcode res = curl_easy_perform(curl);
+        
+        long response_code;
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
+        
+        if (res == CURLE_OK && response_code == 200) {
+            try {
+                nlohmann::json j = nlohmann::json::parse(response);
+                result.success = true;
+                result.orderId = j.value("order_id", "");
+                result.errorMsg = "";
+                if (j.contains("transaction_hash")) {
+                    result.orderHashes.push_back(j["transaction_hash"].get<std::string>());
+                }
+            } catch (const std::exception& e) {
+                result.success = false;
+                result.errorMsg = "Failed to parse lambda response: " + std::string(e.what());
+            }
+        } else {
+            result.success = false;
+            result.errorMsg = "Lambda request failed with code: " + std::to_string(response_code);
+        }
+        
+        curl_slist_free_all(headers);
+        curl_easy_cleanup(curl);
+    } else {
+        result.success = false;
+        result.errorMsg = "Failed to initialize CURL";
+    }
+    
+    return result;
 }

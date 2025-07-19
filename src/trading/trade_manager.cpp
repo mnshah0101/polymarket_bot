@@ -10,7 +10,7 @@
 using namespace polymarket_bot::trading;
 
 TradeManager::TradeManager(const std::string& dbPath, std::unique_ptr<TradeExecutor> executor)
-    : dbPath(dbPath), tradeExecutor(std::move(executor)), db(nullptr) {
+    : db(nullptr), dbPath(dbPath), tradeExecutor(std::move(executor)) {
     
     if (!initializeDatabase()) {
         throw std::runtime_error("Failed to initialize database at: " + dbPath);

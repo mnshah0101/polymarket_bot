@@ -35,7 +35,6 @@ a c++ bot that automatically spots and takes advantage of price differences betw
    ```bash
    export ODDS_API_KEY="your_odds_api_key"
    export POLY_ADDRESS="your_polygon_address"
-   export POLY_SIGNATURE="your_hmac_signature"
    export POLY_TIMESTAMP="your_unix_timestamp"
    export POLY_API_KEY="your_polymarket_api_key"
    export POLY_PASSPHRASE="your_polymarket_passphrase"

@@ -18,7 +18,6 @@ export ODDS_API_KEY="your_odds_api_key"
 export POLY_ADDRESS="your_polymarket_address"
 export POLY_API_KEY="your_polymarket_api_key"
 export POLY_PASSPHRASE="your_polymarket_passphrase"
-export POLY_SIGNATURE="your_hmac_signature"
 export POLY_TIMESTAMP="current_unix_timestamp"
 export BANKROLL="10000"  # Your trading bankroll in USD
 ```

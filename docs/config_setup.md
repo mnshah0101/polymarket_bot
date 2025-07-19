@@ -71,7 +71,6 @@ ODDS_API_KEY=your_odds_api_key_here
 
 # Polymarket Headers
 POLY_ADDRESS=your_polygon_address_here
-POLY_SIGNATURE=your_hmac_signature_here
 POLY_TIMESTAMP=your_unix_timestamp_here
 POLY_API_KEY=your_polymarket_api_key_here
 POLY_PASSPHRASE=your_polymarket_passphrase_here
@@ -87,7 +86,7 @@ When running the bot in Docker, set environment variables using the `-e` flag or
 
 ```bash
 # Using command line
-docker run -e ODDS_API_KEY=your_key -e POLY_ADDRESS=your_address -e POLY_SIGNATURE=your_signature -e POLY_TIMESTAMP=your_timestamp -e POLY_API_KEY=your_api_key -e POLY_PASSPHRASE=your_passphrase polymarket_bot
+docker run -e ODDS_API_KEY=your_key -e POLY_ADDRESS=your_address -e POLY_TIMESTAMP=your_timestamp -e POLY_API_KEY=your_api_key -e POLY_PASSPHRASE=your_passphrase polymarket_bot
 
 # Using environment file
 docker run --env-file .env.docker polymarket_bot
@@ -96,7 +95,6 @@ Example `.env.docker` file:
 ```env
 ODDS_API_KEY=your_odds_api_key_here
 POLY_ADDRESS=your_polygon_address_here
-POLY_SIGNATURE=your_hmac_signature_here
 POLY_TIMESTAMP=your_unix_timestamp_here
 POLY_API_KEY=your_polymarket_api_key_here
 POLY_PASSPHRASE=your_polymarket_passphrase_here
@@ -117,7 +115,6 @@ LOG_LEVEL=INFO
   - `chainId`: Blockchain network ID
   - Headers are read from environment variables:
     - `POLY_ADDRESS`: Polygon address
-    - `POLY_SIGNATURE`: HMAC signature for request
     - `POLY_TIMESTAMP`: Current UNIX timestamp
     - `POLY_API_KEY`: Polymarket API key
     - `POLY_PASSPHRASE`: Polymarket API key passphrase

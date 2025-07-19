@@ -126,6 +126,52 @@ struct PolymarketOpenOrder {
     std::string created_at;          // Unix timestamp when order was created
 };
 
+// CLOB Market Response Structures
+struct ClobMarketToken {
+    std::string token_id;
+    std::string outcome;
+    double price;
+    bool winner;
+};
+
+struct ClobMarketRewards {
+    std::optional<std::string> rates;
+    double min_size;
+    double max_spread;
+};
+
+struct ClobMarket {
+    bool enable_order_book;
+    bool active;
+    bool closed;
+    bool archived;
+    bool accepting_orders;
+    std::string accepting_order_timestamp;
+    double minimum_order_size;
+    double minimum_tick_size;
+    std::string condition_id;
+    std::string question_id;
+    std::string question;
+    std::string description;
+    std::string market_slug;
+    std::string end_date_iso;
+    std::string game_start_time;
+    int seconds_delay;
+    std::string fpmm;
+    double maker_base_fee;
+    double taker_base_fee;
+    bool notifications_enabled;
+    bool neg_risk;
+    std::string neg_risk_market_id;
+    std::string neg_risk_request_id;
+    std::string icon;
+    std::string image;
+    ClobMarketRewards rewards;
+    bool is_50_50_outcome;
+    std::vector<ClobMarketToken> tokens;
+    std::vector<std::string> tags;
+};
+
 // Polymarket User Activity Structure
 struct PolymarketUserActivity {
     std::string proxyWallet;
@@ -288,6 +334,22 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PolymarketRewards, min_size, max_spread, even
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PolymarketMarket, condition_id, question_id, tokens, rewards, minimum_order_size, minimum_tick_size, category, end_date_iso, game_start_time, question, market_slug, min_incentive_size, max_incentive_spread, active, closed, seconds_delay, icon, fpmm)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PolymarketOrderResponse, success, errorMsg, orderId, orderHashes)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PolymarketOpenOrder, associate_trades, id, status, market, original_size, outcome, maker_address, owner, price, side, size_matched, asset_id, expiration, type, created_at)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ClobMarketToken, token_id, outcome, price, winner)
+// Custom serialization for ClobMarketRewards due to optional field
+inline void to_json(nlohmann::json& j, const ClobMarketRewards& r) {
+    j = nlohmann::json{{"min_size", r.min_size}, {"max_spread", r.max_spread}};
+    if (r.rates.has_value()) {
+        j["rates"] = r.rates.value();
+    }
+}
+
+inline void from_json(const nlohmann::json& j, ClobMarketRewards& r) {
+    j.at("min_size").get_to(r.min_size);
+    j.at("max_spread").get_to(r.max_spread);
+    r.rates = j.contains("rates") && !j["rates"].is_null() ? 
+              std::optional<std::string>(j["rates"].get<std::string>()) : std::nullopt;
+}
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ClobMarket, enable_order_book, active, closed, archived, accepting_orders, accepting_order_timestamp, minimum_order_size, minimum_tick_size, condition_id, question_id, question, description, market_slug, end_date_iso, game_start_time, seconds_delay, fpmm, maker_base_fee, taker_base_fee, notifications_enabled, neg_risk, neg_risk_market_id, neg_risk_request_id, icon, image, rewards, is_50_50_outcome, tokens, tags)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PolymarketUserActivity, proxyWallet, timestamp, conditionId, type, size, usdcSize, transactionHash, price, asset, side, outcomeIndex, title, slug, icon, eventSlug, outcome, name, pseudonym, bio, profileImage, profileImageOptimized)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PolymarketPosition, proxyWallet, asset, conditionId, size, avgPrice, initialValue, currentValue, cashPnl, percentPnl, totalBought, realizedPnl, percentRealizedPnl, curPrice, redeemable, title, slug, icon, eventSlug, outcome, outcomeIndex, oppositeOutcome, oppositeAsset, endDate, negativeRisk)
 
